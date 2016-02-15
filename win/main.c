@@ -1337,6 +1337,19 @@ SDL_TimerID SDL_fps = SDL_AddTimer(10000, my_callbackfunc, 0);
     //sprintf(c,"VidMem: %d, DevMem: %d", ScreenMemSpeed(), DeviceMemSpeed());
     //AddMessage(c,100);
 
+    printf("%i gamepads were found.\n\n", SDL_NumJoysticks() );
+    printf("The names of the gamepads are:\n");
+		
+    for( int i=0; i < SDL_NumJoysticks(); i++ ) 
+    {
+        printf("  %s\n", SDL_JoystickName(i));
+    }
+
+    SDL_Joystick *joystick;
+
+    SDL_JoystickEventState(SDL_ENABLE);
+    joystick = SDL_JoystickOpen(0);
+
     fprintf(stderr,"VDP Rate: %d\n",vdp_rate);
 
     //TimeSync code
@@ -1386,6 +1399,59 @@ if (sound) {
                 		case SDL_MOUSEBUTTONUP:
 	                        	HandleMouseButton(&event.button, 0);
 	                        break;
+
+				case SDL_JOYAXISMOTION:
+					if (event.jaxis.axis==0) {
+						int LeftRight = event.jaxis.value;
+						input.pad[event.jaxis.which].data &=~ (INPUT_LEFT|INPUT_RIGHT);
+						if (event.jaxis.value<(-10000)) input.pad[event.jaxis.which].data |= INPUT_LEFT;
+						if (event.jaxis.value>(10000)) input.pad[event.jaxis.which].data |= INPUT_RIGHT;
+						}
+					if (event.jaxis.axis==1) {
+						int UpDown = event.jaxis.value;
+						input.pad[event.jaxis.which].data &=~ (INPUT_UP|INPUT_DOWN);
+						if (event.jaxis.value<(-10000)) input.pad[event.jaxis.which].data |= INPUT_UP;
+						if (event.jaxis.value>(10000)) input.pad[event.jaxis.which].data |= INPUT_DOWN;
+						}
+					//fprintf(stderr,"Gamepad %d Axis %d:%d\n", event.jaxis.which, event.jaxis.axis, event.jaxis.value);
+				break;
+
+#define btn_a 0
+#define btn_b 1
+#define btn_c 2
+#define btn_x 3
+#define btn_y 4
+#define btn_z 5
+#define btn_mode 6
+#define btn_start 7
+
+				case SDL_JOYBUTTONDOWN:
+					if(event.jbutton.button==btn_a)     { input.pad[event.jbutton.which].data |= INPUT_A; break;}
+    					if(event.jbutton.button==btn_b)     { input.pad[event.jbutton.which].data |= INPUT_B; break;}
+    					if(event.jbutton.button==btn_c)     { input.pad[event.jbutton.which].data |= INPUT_C; break;}
+    					if(event.jbutton.button==btn_x)     { input.pad[event.jbutton.which].data |= INPUT_X; break;}
+    					if(event.jbutton.button==btn_y)     { input.pad[event.jbutton.which].data |= INPUT_Y; break;}
+    					if(event.jbutton.button==btn_z)     { input.pad[event.jbutton.which].data |= INPUT_Z; break;}
+    					if(event.jbutton.button==btn_start) { input.pad[event.jbutton.which].data |= INPUT_START; break;}
+    					if(event.jbutton.button==btn_mode)  { input.pad[event.jbutton.which].data |= INPUT_MODE; break;}
+					//fprintf(stderr,"Gamepad %d BtnDown %d:%d\n", event.jbutton.which, event.jbutton.button, event.jbutton.state);
+				break;
+
+				case SDL_JOYBUTTONUP:
+					if(event.jbutton.button==btn_a)     { input.pad[event.jbutton.which].data &=~ INPUT_A; break;}
+    					if(event.jbutton.button==btn_b)     { input.pad[event.jbutton.which].data &=~ INPUT_B; break;}
+    					if(event.jbutton.button==btn_c)     { input.pad[event.jbutton.which].data &=~ INPUT_C; break;}
+    					if(event.jbutton.button==btn_x)     { input.pad[event.jbutton.which].data &=~ INPUT_X; break;}
+    					if(event.jbutton.button==btn_y)     { input.pad[event.jbutton.which].data &=~ INPUT_Y; break;}
+    					if(event.jbutton.button==btn_z)     { input.pad[event.jbutton.which].data &=~ INPUT_Z; break;}
+    					if(event.jbutton.button==btn_start) { input.pad[event.jbutton.which].data &=~ INPUT_START; break;}
+    					if(event.jbutton.button==btn_mode)  { input.pad[event.jbutton.which].data &=~ INPUT_MODE; break;}
+					//fprintf(stderr,"Gamepad %d BtnUp %d:%d\n", event.jbutton.which, event.jbutton.button, event.jbutton.state);
+				break;
+
+				case SDL_JOYHATMOTION:
+                                        fprintf(stderr,"Gamepad %d Hat %d:%d\n", event.jhat.which, event.jhat.hat, event.jhat.value);
+				break;
 
 				case SDL_KEYDOWN:
 
@@ -1446,6 +1512,7 @@ if (show_keys) {
     if(event.key.keysym.sym==key_z)     {  input.pad[0].data &=~ INPUT_Z; break; }
     if(event.key.keysym.sym==key_start) {  input.pad[0].data &=~ INPUT_START; break; }
     if(event.key.keysym.sym==key_mode)  {  input.pad[0].data &=~ INPUT_MODE; break; }
+
 
 if (show_keys) {
     sprintf(c,"Key release: %d",event.key.keysym.sym);
