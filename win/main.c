@@ -1006,7 +1006,7 @@ if (fullscreen) addflag|=SDL_FULLSCREEN;
 screen = SDL_SetVideoMode(320*screen_mult, 240*screen_mult, 32, SDL_HWSURFACE|addflag);
 
 extern HWND SDL_Window;
-SetWindowTextW(SDL_Window,L"Genesis Plus/Pocket PC");
+SetWindowTextW(SDL_Window,L"Genesis Plus/PC");
 
     SetHandlers();
     set_renderer();
@@ -1136,7 +1136,7 @@ FILE *mylog;
 #ifdef DEBUG
     mylog = fopen("GenPP.log","w+");
     *stderr = *mylog;
-    fprintf (stderr,"Genesis Plus/Pocket PC\n");
+    fprintf (stderr,"Genesis Plus/PC\n");
 #endif
 
     sprintf(cfgfilename,"%s/%s",mypath,"genpp.cfg");
@@ -1169,13 +1169,13 @@ FILE *mylog;
 
 extern HWND SDL_Window;
 
-SetWindowTextW(SDL_Window,L"Genesis Plus/Pocket PC");
+SetWindowTextW(SDL_Window,L"Genesis Plus/PC");
 
 extern gsGetOpenFileName(OPENFILENAME * ofn);
 
 /* allow open by cmd line */
-wcstombs(filename,lpCmdLine,MAX_PATH);
-if (strlen(filename)>0) {
+//wcstombs(filename,lpCmdLine,MAX_PATH);
+if (strlen(lpCmdLine)>0) {
     sprintf(RomPath,"%s",filename);
 
 } else {
@@ -1294,7 +1294,7 @@ const char * v1 = gtkopts_getvalue("romfolder");
 	  ExitApp();
 	}  
 
-SetWindowText(SDL_Window,L"Genesis Plus/Pocket PC");
+SetWindowText(SDL_Window,L"Genesis Plus/PC");
 
     if (sram.mem) { load_sram(); }
 

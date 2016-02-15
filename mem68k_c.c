@@ -31,8 +31,9 @@ unsigned int m68k_read_memory_8_c(unsigned int address)
 
  address&=0xffffff;
 
- if ((address>>21)==7) { return READ_BYTE(work_ram + (address & 0xFFFF)); }
- //if ((address&0xe00000)==0xe00000) { uint8 d = *(uint8 *)(work_ram+((address^1)&0xffff)); return d; } //Ram
+//n0p
+ //if ((address>>21)==7) { return READ_BYTE(work_ram + (address & 0xFFFF)); }
+ if ((address&0xe00000)==0xe00000) { uint8 d = *(uint8 *)(work_ram+((address^1)&0xffff)); return d; } //Ram
 
     // Saveram
     if ((sram.mem) && (address >= sram.start) && (address < sram.end)) {
@@ -189,8 +190,9 @@ unsigned int m68k_read_memory_16_c(unsigned int address)
 
   address&=0xfffffe;
 
-  if ((address>>21)==7) { return READ_WORD(work_ram + (address & 0xFFFF)); }
-  //if ((address&0xe00000)==0xe00000) { uint16 d=*(uint16 *)(work_ram+(address&0xffff)); return d; } // Ram
+  //n0p
+  //if ((address>>21)==7) { return READ_WORD(work_ram + (address & 0xFFFF)); }
+  if ((address&0xe00000)==0xe00000) { uint16 d=*(uint16 *)(work_ram+(address&0xffff)); return d; } // Ram
 
     switch((address >> 21) & 7)
     {
@@ -322,8 +324,9 @@ void m68k_write_memory_8_c(unsigned int address, unsigned char value)
 
   address&=0xffffff;
 
-  //if ((address&0xe00000)==0xe00000) { uint8 *pm=(uint8 *)(work_ram+((address^1)&0xffff)); pm[0]=value; return; } // Ram
-  if ((address>>21)==7) { WRITE_BYTE(work_ram + (address & 0xFFFF), value); return; }
+  //n0p
+  if ((address&0xe00000)==0xe00000) { uint8 *pm=(uint8 *)(work_ram+((address^1)&0xffff)); pm[0]=value; return; } // Ram
+  //if ((address>>21)==7) { WRITE_BYTE(work_ram + (address & 0xFFFF), value); return; }
 
 
  // Saveram write
@@ -490,8 +493,9 @@ void m68k_write_memory_16_c(unsigned int address, unsigned short value)
 
   address&=0xfffffe;
 
-  if ((address>>21)==7) { WRITE_WORD(work_ram + (address & 0xFFFF), value); return; }
-  //if ((address&0xe00000)==0xe00000) { *(uint16 *)(work_ram+(address&0xfffe))=value; return; } // Ram
+  //n0p
+  //if ((address>>21)==7) { WRITE_WORD(work_ram + (address & 0xFFFF), value); return; }
+  if ((address&0xe00000)==0xe00000) { *(uint16 *)(work_ram+(address&0xfffe))=value; return; } // Ram
 
     switch((address >> 21) & 7)
     {
