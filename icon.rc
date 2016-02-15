@@ -1,0 +1,27 @@
+IDI_ICON1  ICON    DISCARDABLE     "gen.ico"
+
+#include <windows.h>
+
+VS_VERSION_INFO		VERSIONINFO
+FILEVERSION 1,0,9,0
+PRODUCTVERSION 1,0,9,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "FileDescription",	"Genesis Plus/Pocket PC\0"
+      VALUE "FileVersion",	"1.09\0"
+      VALUE "InternalName",	"GenPP\0"
+      VALUE "LegalCopyright",	"(C) 2006, 2007, 2008, 2016 n0p\0"
+      VALUE "OriginalFilename",	"GenPP.exe\0"
+      VALUE "ProductName",	"GenPP\0"
+      VALUE "ProductVersion",	"1.09\0"
+      VALUE "Comments","n0p@ukr.net\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1252
+  END
+END

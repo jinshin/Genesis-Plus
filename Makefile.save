@@ -1,0 +1,93 @@
+# Genesis Plus - Sega Mega Drive emulator
+# (c) 1999, 2000, 2001, 2002, 2003  Charles MacDonald
+
+# -DLSB_FIRST - Leave undefined for big-endian processors.
+# -DDEBUG     - Enable debugging code
+# -DX86_ASM   - Enable inline x86 assembly code in Z80 emulator
+
+CC	=	arm-wince-pe-gcc
+RESC	=	arm-wince-pe-windres
+AS	=	nasm -f coff
+LDFLAGS	=	--gc-sections
+FLAGS	=	-I. -Iwm -Isound -I/usr/local/include \
+		 \
+		 \
+		-O2 -mcpu=strongarm -fomit-frame-pointer -DUSE_CYCLONE -DUSE_DRZ80 -D_CE_HACK
+
+LIBS	=	-lz -lm -lSDL -lgsgetfile -s -staticlibs -Wl,-Map=genmap.txt
+
+OBJ	=       obj/system.o    \
+		obj/render.o	\
+		obj/vdp.o	\
+		obj/genesis.o	\
+		obj/mem68k_c.o	\
+		obj/unzip.o     \
+		obj/fileio.o	\
+		obj/loadrom.o	\
+		obj/mio.o	\
+		obj/memz80.o	\
+		obj/membnk.o	\
+		obj/memvdp.o	\
+		obj/state.o	\
+		obj/gtkopts.o	\
+		obj/locopts.o	\
+		obj/eeprom.o	\
+		obj/cyclone.o   \
+		obj/DrZ80.o	
+		
+OBJ	+=      obj/sound.o	\
+		obj/fm.o	\
+		obj/sn76496.o
+		
+OBJ	+=	obj/main.o	\
+		obj/options.o	\
+		obj/msg.o
+
+OBJ	+=      obj/icon.o	
+
+EXE	=	genpp.exe
+
+all	:	$(EXE) 
+		upx -9 $(EXE)
+
+$(EXE)	:	$(OBJ) shared.h
+		$(CC) -o $(EXE) $(OBJ) $(LIBS) $(LDFLAGS)
+	        
+obj/%.o : 	%.c %.h
+		$(CC) -c $< -o $@ $(FLAGS)
+
+obj/%.o : 	%.s 
+		$(CC) -mcpu=arm9 -c $< -o $@
+
+obj/%.o : 	%.rc 
+		$(RESC) -i $< -o $@
+	        
+obj/%.o :	sound/%.c sound/%.h	        
+		$(CC) -c $< -o $@ $(FLAGS)
+	        
+obj/%.o :	wm/%.c wm/%.h	        
+		$(CC) -c $< -o $@ $(FLAGS)
+	        
+pack	:
+		arm-wince-pe-strip $(EXE)
+		./upx -9 $(EXE)	        
+
+clean	:	        
+		rm -f obj/*.o
+		rm -f obj/*.oa
+		rm -f *.bak
+		rm -f GenPP.exe
+		rm -f *.log
+		rm -f *.wav
+		rm -f *.zip
+
+makedir :
+		mkdir obj
+	        
+archive:	        
+		pk -add -max -excl=bak -excl=out \
+		-excl=test -excl=obj mdsrc.zip -dir=current
+	        
+#
+# end of makefile
+#

@@ -1,0 +1,4 @@
+rm genpp.exe
+rm obj/*
+make -f makearm
+./upx -9 genpp.exe

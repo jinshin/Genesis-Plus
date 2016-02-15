@@ -1,0 +1,55 @@
+13.02.2007>	+ Bugfix: VDP Hack and DMA Timing now work separately (fixes Legend of Galahad)
+	 	+ ZBUS read hack from PicoDrive by Notaz. (fixes Time Killers)
+		+ Bugfix: VRAM Color update now sets color 0 with border color, regardless of what ROM wants to write where. (fixes some color glitches in Legend of Galahad, Out of this world, Mortal Combat)
+
+11.02.2007>	+ EEPROM SRAM support (copypasted from PicoDrive by Notaz, tested on Megaman: The Wily Wars)
+                + VDP sprite collision code added (Strider 2 works)
+		+ SaveStates improved (M68K OSP and SN76496 incuded - Comix Zone now saves/loads fine)	
+		+ Typo in membnk.c fixed (0xC0000 instead of 0xC00000) (Kings Bounty, Altered Beast)
+		+ Strange VDP Hack (skip some cycles on VRAM writes when not in h-blank - that's only my guess, but it fixes Chaos Engine).
+                + GamePad i/o fixed (DecapAttack works)
+                + Pattern cache updated once per scanline, as it used to be from the start. (fixes sprite corruption in Road Blasters, Devil Hunter Yohko - The Seven Bells).
+
+30.01.2007>	+ PAL support, speedups, DMA timing fix by Notaz, country autodetect.
+
+15.01.2007>	+ Included Notaz's changes to FM core.
+
+26.12.2006>	+ Bugfix: Hangup on Genesis mode change.
+
+24.12.2006>	+ llsfilter option
+		+ Speed hacks
+
+17.12.2006>	+ Options: fastsound, savefolder, configfolder
+		- Autoframeskip always on bug removed (at last)
+		+ Internal DAC handler
+		+ Some render changes
+
+03.12.2006> 	+ Cyclone 0.00861
+		- autoframeskip always on bug removed
+		+ H-counter is more correct
+
+25.09.2006> 	+ Added frameskip=auto option.
+		+ Now uses latest DrZ80 core from Reesy DrMD.
+
+04.08.2006> 	+ Switched back to Cyclone 0.0084.
+
+28.07.2006> 	+ Using Cyclone 0.0086.
+		+ Better DrZ80 support.
+		+ External files gzipped to preserve space.
+
+12.05.2006> 	+ Cyclone compability improooved - included Notaz changes and compiled with GCC 4.1.1
+
+10.04.2006>	+ Portrait mode.
+		+ Various optimizations.
+		+ Now using gsGetFile.dll for file open dialog.
+		+ Better timesync.
+
+22.03.2006>	+ Added DrZ80 core (taken from PicoDriveN (by Notaz) sources).
+		+ SaveStates format changed to be compatible between cores.
+		+ SaveStates and SRAM files are now compressed to preserve space.
+		+ Toolbars changed. More options.
+		+ Added Per-Game settings.
+		+ Added conf options for tap zones.
+		...and maybe some other changes.
+
+03.03.2006> 	Initial release.
