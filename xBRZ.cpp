@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <pthread.h>
 
 #ifdef _WINDOWS
 	#define WIN32_LEAN_AND_MEAN
@@ -733,9 +734,60 @@ struct Scaler4x {
 #endif
 #endif
 
+rgbpixel* g_input;
+rgbpixel* g_output;
+
 extern "C" void xBRZScale_2X (rgbpixel* input, rgbpixel* output) {
-        scaleImage<Scaler2x>((unsigned int*)input, (unsigned int*)output, 320, 224, 0, 224);
+           scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224);
 }
+
+extern "C" void xBRZScale_3X (rgbpixel* input, rgbpixel* output) {
+           scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224);
+}
+
+extern "C" void xBRZScale_4X (rgbpixel* input, rgbpixel* output) {
+           scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224);
+}
+
+void *SliceOne2X(void *vargp) {
+        scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2);
+}
+
+extern "C" void xBRZScale_2X_MT (rgbpixel* input, rgbpixel* output) {
+pthread_t tid;
+	   g_input = input;
+	   g_output = output;
+           pthread_create(&tid, NULL, SliceOne2X, NULL);
+           scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224);
+    	   pthread_join(tid, NULL);
+}
+
+void *SliceOne3X(void *vargp) {
+        scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2);
+}
+
+extern "C" void xBRZScale_3X_MT (rgbpixel* input, rgbpixel* output) {
+pthread_t tid;
+	   g_input = input;
+	   g_output = output;
+           pthread_create(&tid, NULL, SliceOne3X, NULL);
+           scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224);
+    	   pthread_join(tid, NULL);
+}
+
+void *SliceOne4X(void *vargp) {
+        scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2);
+}
+
+extern "C" void xBRZScale_4X_MT (rgbpixel* input, rgbpixel* output) {
+pthread_t tid;
+	   g_input = input;
+	   g_output = output;
+           pthread_create(&tid, NULL, SliceOne4X, NULL);
+           scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224);
+    	   pthread_join(tid, NULL);
+}
+
 
 extern "C" void xBRZScale_Init() {
 //stub
