@@ -39,6 +39,7 @@ int  cdir = 0; //0 - rom path, 1 - genpp path, 2 - user-defined
 
 int  screen_mult = 2;
 
+uint8  benchmark = 0;
 uint8  renderer = 0;
 uint8  fullscreen = 0;
 uint8  rotateright = 0;
@@ -130,8 +131,8 @@ SDL_sem *sound_sem;
 #define BMPWIDTH 320
 #define BMPHEIGHT 240
 
-int int_ft; //Time in ms per frame
-int acc_ft; //Elapsed frame time
+float int_ft; //Time in ms per frame
+float acc_ft; //Elapsed frame time
 int min_delay = 2; //min allowed system sleep time
 int max_delay = 2000; //max allowed system sleep time
 int skipnext = 0;
@@ -595,8 +596,7 @@ if (square_screen) {
 	case GENPP_SIXBUTTON: sixbuttonpad^=1; io_reset(); PrepareToolbar(0); UpdateToolbar(); break; 
 	case GENPP_NINE: if (tmod==3) tmod=2; else tmod=3; PrepareToolbar(0); UpdateToolbar(); break; 
 	case GENPP_SHOW: show_keys^=1; PrepareToolbar(0); UpdateToolbar(); break; 
-	case GENPP_CHEAT: cheat^=1; if (cheat) int_ft<<=1; else int_ft>>=1; PrepareToolbar(0); UpdateToolbar(); break; 
-
+	case GENPP_CHEAT: cheat^=1; if (cheat) int_ft*=2; else int_ft/=2; PrepareToolbar(0); UpdateToolbar(); break; 
 	case GENPP_FS_UP: if (!autofs) { frameskip++;} else {frameskip=0;}; autofs=0; if (frameskip>9) frameskip=9; PrepareToolbar(0); UpdateToolbar(); break;
 	case GENPP_FS_DOWN: frameskip--; autofs=0; if (frameskip<0) {frameskip=0; autofs=1;} PrepareToolbar(0); UpdateToolbar(); break;
 
@@ -1354,9 +1354,11 @@ SDL_TimerID SDL_fps = SDL_AddTimer(10000, my_callbackfunc, 0);
 
     //TimeSync code
     int_ft = 1000 / vdp_rate;
-    if (vdp_rate==50) int_ft--; //ugly fixup
+    //if (vdp_rate==50) int_ft--; //ugly fixup
     s_t = 0;
     GET_PCR;
+
+    if (benchmark) sound=0;
 
 if (sound) {
     audio_init(sound_rate);
@@ -1569,6 +1571,7 @@ if(!paused)
 
 	} else { system_frame_gens(1); }
 
+if (!benchmark) {
 //TimeSync begin
 	skipnext = 0;
 		if (s_t!=0) {
@@ -1583,6 +1586,7 @@ if(!paused)
             		acc_ft += int_ft;
 	    	}
 //TimeSync end;
+}
 
          } else
          //if paused, why waste CPU?

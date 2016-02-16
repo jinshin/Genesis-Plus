@@ -44,6 +44,7 @@
 // the threading in scale() and RenderPluginOutput() first
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -108,6 +109,7 @@ namespace {
 const unsigned int redMask   = 0xff0000;
 const unsigned int greenMask = 0x00ff00;
 const unsigned int blueMask  = 0x0000ff;
+const unsigned int redblueMask = 0xff00ff;
 
 enum RotationDegree { //clock-wise
 	ROT_0,
@@ -153,12 +155,15 @@ void alphaBlend(unsigned int& dst, unsigned int col) { //blend color over destin
 		(greenMask & ((col & greenMask) * N + (dst & greenMask) * (M - N)) / M) |
 		(blueMask  & ((col & blueMask ) * N + (dst & blueMask ) * (M - N)) / M);
 }
-
-
+//n0p - doesn't work as expected :(
+/*
+void alphaBlend(unsigned int& dst, unsigned int col) {
+	dst = (redblueMask   & ((col & redblueMask  ) * N  + (dst & redblueMask ) * (M - N)) / M) | 
+		(greenMask & ((col & greenMask) * N + (dst & greenMask) * (M - N)) / M); }
+*/
 //calculate input matrix coordinates after rotation at compile time
 template <RotationDegree rotDeg, size_t I, size_t J, size_t N>
 struct MatrixRotation;
-
 
 template <size_t I, size_t J, size_t N>
 struct MatrixRotation<ROT_0, I, J, N> {
@@ -200,37 +205,32 @@ class OutputMatrix {
 #define CB_MUL 35317
 #define CR_MUL 41615
 
-//const int Ymask = 0x00ff0000;
-//const int Umask = 0x0000ff00;
-//const int Vmask = 0x000000ff;
-
-//static int lTable[0x1000000];
-
-float fastsqrt(float val)  {
-        union
-        {
-                int tmp;
-                float val;
-        } u;
-        u.val = val;
-        u.tmp -= 1<<23; /* Remove last bit so 1.0 gives 1.0 */
-        /* tmp is now an approximation to logbase2(val) */
-        u.tmp >>= 1; /* divide by 2 */
-        u.tmp += 1<<29; /* add 64 to exponent: (e+127)/2 =(e/2)+63, */
-        /* that represents (e/2)-64 but we want e/2 */
-        return u.val;
-}
-
-#if 1
-inline
+FORCE_INLINE
 float distYCbCr(const unsigned int& pix1, const unsigned int& pix2) {
 	if (pix1 == pix2) //about 8% perf boost
 		return 0;
 	//http://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.601_conversion
-	//YCbCr conversion is a matrix multiplication => take advantage of linearity by subtracting first!
-	int r_diff = *((unsigned char*)&pix1+2) - *((unsigned char*)&pix2+2); //we may delay division by 255 to after matrix multiplication
-	int g_diff = *((unsigned char*)&pix1+1) - *((unsigned char*)&pix2+1); //
-	int b_diff = *((unsigned char*)&pix1) - *((unsigned char*)&pix2); //substraction for int is noticeable faster than for double!
+	//YCbCr conversion is a matrix multiplication => take advantage of linearity by subtracting first!	
+
+
+	//int r_diff = *((unsigned char*)&pix1+2) - *((unsigned char*)&pix2+2); //we may delay division by 255 to after matrix multiplication
+	//int g_diff = *((unsigned char*)&pix1+1) - *((unsigned char*)&pix2+1); //
+	//int b_diff = *((unsigned char*)&pix1) - *((unsigned char*)&pix2); //substraction for int is noticeable faster than for double!
+
+//n0p - faster code
+//	int r_diff = (pix1>>16) - (pix2>>16); //we may delay division by 255 to after matrix multiplication
+//	int g_diff = ((pix1>>8)&0xFF)-((pix2>>8)&0xFF); //
+//	int b_diff = (pix1&0xFF)-(pix2&0xFF); //substraction for int is noticeable faster than for double!
+
+//n0p - produces even smaller and faster code
+	unsigned int tmp1 = pix1;
+	unsigned int tmp2 = pix2;
+	int b_diff = (tmp1&0xFF)-(tmp2&0xFF);
+	tmp1>>=8; tmp2>>=8;
+	int g_diff = (tmp1&0xFF)-(tmp2&0xFF);	
+        tmp1>>=8; tmp2>>=8;
+	int r_diff = tmp1 - tmp2;
+
 	//ITU-R BT.709 conversion
 	const float y   = 0.2126F * r_diff + 0.7152F * g_diff + 0.0722F * b_diff; //[!], analog YCbCr!
 	const float c_b = (b_diff - y) * 0.5389F;
@@ -238,37 +238,6 @@ float distYCbCr(const unsigned int& pix1, const unsigned int& pix2) {
 	//we skip division by 255 to have similar range like other distance functions
 	return sqrt(y*y + c_b*c_b +  c_r*c_r);
 }
-
-#else
-/*
-
-            for (uint i = 0; i < 0x1000000; i++)
-            {
-
-                float r = (i & 0xff0000) >> 16;
-                float g = (i & 0x00ff00) >> 8;
-                float b = (i & 0x0000ff);
-
-                lTable[i] = (byte)(.299 * r + .587 * g + .114 * b) | ((byte)((int)(-.169 * r - .331 * g + .5 * b) + 128) << 8) | ((byte)((int)(.5 * r - .419 * g - .081 * b) + 128) << 16);
-            }
-*/
-
-inline
-float distYCbCr(uint32_t pix1, uint32_t pix2)
-        {
-
-            if (pix1 == pix2) return 0;
-
-            int YUV1 = lTable[pix1 & 0x00ffffff];
-            int YUV2 = lTable[pix2 & 0x00ffffff];
-
-            int y = ((YUV1 & Ymask) >> 16) - ((YUV2 & Ymask) >> 16);
-            int u = ((YUV1 & Umask) >> 8) - ((YUV2 & Umask) >> 8);
-            int v = (YUV1 & Vmask) - (YUV2 & Vmask);
-
-            return y * y + u * u + v * v;
-        }
-#endif
 
 
 /*
@@ -769,15 +738,5 @@ extern "C" void xBRZScale_2X (rgbpixel* input, rgbpixel* output) {
 }
 
 extern "C" void xBRZScale_Init() {
-/*
-            for (uint32_t i = 0; i < 0x1000000; i++)
-            {
-
-                float r = (i & 0xff0000) >> 16;
-                float g = (i & 0x00ff00) >> 8;
-                float b = (i & 0x0000ff);
-
-                lTable[i] = (uint8_t)(.299 * r + .587 * g + .114 * b) | ((uint8_t)((int)(-.169 * r - .331 * g + .5 * b) + 128) << 8) | ((uint8_t)((int)(.5 * r - .419 * g - .081 * b) + 128) << 16);
-            }
-*/
+//stub
 }
