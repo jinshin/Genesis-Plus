@@ -780,12 +780,39 @@ PRE_X2_32_BUF;
 }
 
 extern void xBRZScale_2X (uint32* input, uint32* output);
+extern void xBRZScale_3X (uint32* input, uint32* output);
+extern void xBRZScale_4X (uint32* input, uint32* output);
+
+extern void xBRZScale_2X_MT (uint32* input, uint32* output);
+extern void xBRZScale_3X_MT (uint32* input, uint32* output);
+extern void xBRZScale_4X_MT (uint32* input, uint32* output);
 
 void xBRZ_2X (uint32* input, uint32* output) {
 	xBRZScale_2X(&Buffer[0],bitmap.data);
 } 
 
-extern int screen_mult;
+void xBRZ_3X (uint32* input, uint32* output) {
+	xBRZScale_3X(&Buffer[0],bitmap.data);
+} 
+
+void xBRZ_4X (uint32* input, uint32* output) {
+	xBRZScale_4X(&Buffer[0],bitmap.data);
+}
+
+void xBRZ_2X_MT (uint32* input, uint32* output) {
+	xBRZScale_2X_MT(&Buffer[0],bitmap.data);
+} 
+
+void xBRZ_3X_MT (uint32* input, uint32* output) {
+	xBRZScale_3X_MT(&Buffer[0],bitmap.data);
+} 
+
+void xBRZ_4X_MT (uint32* input, uint32* output) {
+	xBRZScale_4X_MT(&Buffer[0],bitmap.data);
+}  
+
+
+extern int scale;
 
 #define PRE_X2_32  \
 	src[length]=src[length-1]; \

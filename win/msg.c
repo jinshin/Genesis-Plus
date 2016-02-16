@@ -111,7 +111,7 @@ if (messages.num>0) messages.num--; else NeedMessage=0;
 
 }
 
-extern int screen_mult;
+extern int scale;
 
 void ProcessMessages () {
 
@@ -122,7 +122,7 @@ int i;
 if (messages.num==0) { NeedUpdate=0; return; };
 
 for (i=0; i<messages.num; i++) {
-    if (NeedUpdate) draw_text(&MsgBuf[0], 5, i*10+5, messages.msg[i].str, 320*screen_mult);
+    if (NeedUpdate) draw_text(&MsgBuf[0], 5, i*10+5, messages.msg[i].str, 320*scale);
     messages.msg[i].ttl-=(frameskip+1);
     }
 
@@ -143,7 +143,7 @@ unsigned char a;
 unsigned char b;
 unsigned char * mchar;
 int tshift;
-buffer = buffer + (((y*bwidth*screen_mult)+x)<<1);
+buffer = buffer + (((y*bwidth*scale)+x)<<1);
 sl=strlen(string);
 do {
     a=*string;
@@ -164,7 +164,7 @@ do {
 	  }
 	}
 	mchar++;
-    tshift+=(bwidth<<1)*screen_mult;
+    tshift+=(bwidth<<1)*scale;
     }
     buffer+=(4<<1);
     string++;

@@ -37,10 +37,10 @@ int  cdir = 0; //0 - rom path, 1 - genpp path, 2 - user-defined
 
 //Options
 
-int  screen_mult = 2;
+int  scale = 2;
 
 uint8  benchmark = 0;
-uint8  renderer = 0;
+uint8  renderer = 7;
 uint8  fullscreen = 0;
 uint8  rotateright = 0;
 uint8  show_keys = 1;
@@ -286,15 +286,15 @@ if (CheckFiles) {
 						FSPosY=(i/LMW); FSPosX=(i%LMW);
 						  if (!autofs) {
 						  sprintf(v,"%d",frameskip);
-						  draw_text((uint8*)AltToolbar,FSPosX,FSPosY+1,v,320*screen_mult); } else {
+						  draw_text((uint8*)AltToolbar,FSPosX,FSPosY+1,v,320*scale); } else {
 						  sprintf(v,"%s","auto");
-						  draw_text((uint8*)AltToolbar,FSPosX-6,FSPosY+1,v,320*screen_mult); }
+						  draw_text((uint8*)AltToolbar,FSPosX-6,FSPosY+1,v,320*scale); }
 						};
 						break;
 	case GENPP_FR: if ((!FRPosX)|(!FRPosY)) {
 						FRPosY=(i/LMW); FRPosX=(i%LMW);
 						  sprintf(v,"%d",sound_rate);
-						  draw_text((uint8*)AltToolbar,FRPosX-(3*2),FRPosY+1,v,320*screen_mult);
+						  draw_text((uint8*)AltToolbar,FRPosX-(3*2),FRPosY+1,v,320*scale);
 						};
 						break;
 	}
@@ -339,15 +339,15 @@ if (CheckFiles) {
 						FSPosY=(i/PMW); FSPosX=(i%PMW);
 						  if (!autofs) {
 						  sprintf(v,"%d",frameskip);
-						  draw_text ((uint8*)AltToolbar,FSPosX,FSPosY+1,v,240*screen_mult); } else {
+						  draw_text ((uint8*)AltToolbar,FSPosX,FSPosY+1,v,240*scale); } else {
 						  sprintf(v,"%s","auto");
-						  draw_text ((uint8*)AltToolbar,FSPosX-6,FSPosY+1,v,240*screen_mult); }
+						  draw_text ((uint8*)AltToolbar,FSPosX-6,FSPosY+1,v,240*scale); }
 						};
 						break;
 	case GENPP_FR: if ((!FRPosX)|(!FRPosY)) {
 						FRPosY=(i/PMW); FRPosX=(i%PMW);
 						  sprintf(v,"%d",sound_rate);
-						  draw_text((uint8*)AltToolbar,FRPosX-(3*2),FRPosY+1,v,240*screen_mult);
+						  draw_text((uint8*)AltToolbar,FRPosX-(3*2),FRPosY+1,v,240*scale);
 						};
 						break;
 	}	
@@ -375,15 +375,15 @@ if (CheckFiles) {
 						FSPosY=(i/SMW); FSPosX=(i%SMW);
 						  if (!autofs) {
 						  sprintf(v,"%d",frameskip);
-						  draw_text ((uint8*)AltToolbar,FSPosX,FSPosY+1,v,240*screen_mult); } else {
+						  draw_text ((uint8*)AltToolbar,FSPosX,FSPosY+1,v,240*scale); } else {
 						  sprintf(v,"%s","auto");
-						  draw_text ((uint8*)AltToolbar,FSPosX-6,FSPosY+1,v,240*screen_mult); }
+						  draw_text ((uint8*)AltToolbar,FSPosX-6,FSPosY+1,v,240*scale); }
 						};
 					break;
 	case GENPP_FR: if ((!FRPosX)|(!FRPosY)) {
 						FRPosY=(i/SMW); FRPosX=(i%SMW);
 						  sprintf(v,"%d",sound_rate);
-						  draw_text((uint8*)AltToolbar,FRPosX-(3*2),FRPosY+1,v,240*screen_mult);
+						  draw_text((uint8*)AltToolbar,FRPosX-(3*2),FRPosY+1,v,240*scale);
 						};
 						break;
 	}
@@ -1003,7 +1003,7 @@ Pause();
 SDL_QuitSubSystem(SDL_INIT_VIDEO);
 uint32 addflag = 0;
 if (fullscreen) addflag|=SDL_FULLSCREEN;
-screen = SDL_SetVideoMode(320*screen_mult, 240*screen_mult, 32, SDL_HWSURFACE|addflag);
+screen = SDL_SetVideoMode(320*scale, 240*scale, 32, SDL_HWSURFACE|addflag);
 
 extern HWND SDL_Window;
 SetWindowTextW(SDL_Window,L"Genesis Plus/PC");
@@ -1566,7 +1566,11 @@ if(!paused)
          		      };	
          		ProcessMessages();
 #endif
-			if (xbrz) xBRZ_2X(0,0);
+			if (xbrz) {
+				if (scale==2) xBRZ_2X_MT(0,0);
+				if (scale==3) xBRZ_3X_MT(0,0);
+				if (scale==4) xBRZ_4X_MT(0,0);
+			}
          		_FreeGAPIBuffer();
 
 	} else { system_frame_gens(1); }
