@@ -50,7 +50,7 @@ typedef struct {
 static t_opts gtkopts_opts[] = {
   { "scale","2, 3, 4", "2", "Scale output - 2X, 3X, 4X. Toggle with F4." },
   { "mt","none, two, four", "0", "Multihreaded xBRZ filter. none - Single thread, two - Two threads, four - Four threads." },
-  { "renderer", "0..8", "0", "Plain, TV, Phosph, TV+Phosph, LCD, xBRZ, TV+xBRZ, Phosph+xBRZ, TV+Phosph+xBRZ, Toggle with F3." },
+  { "renderer", "0..8", "0", "0:Plain, 1:TV, 2:Phosph, 3:TV+Phosph, 4:LCD, 5:xBRZ, 6:TV+xBRZ, 7:Phosph+xBRZ, 8:TV+Phosph+xBRZ, Toggle with F3." },
   { "fullscreen", "true/false", "false", "Start fullscreen. Toggle with ESC." },
   { "benchmark","true/false", "false", "Benchmark mode. Print fps to console, no sound, no sync." },
   { "show_keys", "true/false",	"true",	"Show pressed and not binded keys" },
