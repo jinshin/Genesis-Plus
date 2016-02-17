@@ -246,31 +246,58 @@ void RenderLine_X4S4 (uint8 *src, int line, int offset, uint32 *table, int lengt
 
 extern uint8   renderer;
 extern uint8   xbrz;
-uint8	tvblur = 0;
+extern int   scale;
 uint8	phos = 0;
 uint8   lcd = 0;
 
 void set_renderer()
 {
-#ifdef _WFIX
-	if (lcd) { RenderLine = RenderLine_X2S4; exit; }
 
-
-switch (renderer) {
-	
+if (scale <= 2) {
+   switch (renderer) {
 	case 0: xbrz=0; RenderLine = RenderLine_X2; break;
 	case 1: xbrz=0; RenderLine = RenderLine_X2S1; break;
 	case 2: xbrz=0; RenderLine = RenderLine_X2S2; break;
 	case 3: xbrz=0; RenderLine = RenderLine_X2S3; break;
 	case 4: xbrz=0; RenderLine = RenderLine_X2S4; break;
+
 	case 5: xbrz=1; RenderLine = RenderLine_X1_Buffer; break;
 	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
 	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
 	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
+        }
 }
 
+if (scale == 3) {
+   switch (renderer) {
+	case 0: xbrz=0; RenderLine = RenderLine_X3; break;
+	case 1: xbrz=0; RenderLine = RenderLine_X3S1; break;
+	case 2: xbrz=0; RenderLine = RenderLine_X3S2; break;
+	case 3: xbrz=0; RenderLine = RenderLine_X3S3; break;
+	case 4: xbrz=0; RenderLine = RenderLine_X3S4; break;
 
-#else
+	case 5: xbrz=1; RenderLine = RenderLine_X1_Buffer; break;
+	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
+	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
+	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
+	}
+}
+
+if (scale == 4) {
+   switch (renderer) {
+	case 0: xbrz=0; RenderLine = RenderLine_X4; break;
+	case 1: xbrz=0; RenderLine = RenderLine_X4S1; break;
+	case 2: xbrz=0; RenderLine = RenderLine_X4S2; break;
+	case 3: xbrz=0; RenderLine = RenderLine_X4S3; break;
+	case 4: xbrz=0; RenderLine = RenderLine_X4S4; break;
+
+	case 5: xbrz=1; RenderLine = RenderLine_X1_Buffer; break;
+	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
+	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
+	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
+	}
+}
+#if 0
 extern uint8 fast_vid;
 extern uint8 NeedMessage;
 extern uint8 UncachedRender;
@@ -837,6 +864,7 @@ extern int scale;
 	uint32 *outWrite = (uint32*)tmp; \
 	uint32 *inCache = (uint32*)tmp2;	
 
+
 void RenderLine_X2 (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 PRE_X2_32;
@@ -942,6 +970,258 @@ PRE_X2_32;
 	} while (--length);
 }
 
+
+//------------------------------------- X3 -------------------------------------------------------
+
+#define PRE_X3_32  \
+	src[length]=src[length-1]; \
+	int soffset = (bitmap.pitch-(320*3))/2; \
+	uint8 *tmp2=(uint8*)&Cache[0] + ((offset+line*320)<<2);	\
+	uint32 *outWrite = (uint32*)bitmap.data + offset*3 + soffset + line*bitmap.pitch*3; \
+	uint32 *inCache = (uint32*)tmp2;	
+
+
+void RenderLine_X3 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X3_32;
+	do {
+		if (line<2) fprintf(stderr,"%d %d %d %d\n",soffset,offset,outWrite,bitmap.data); 
+	        uint32 * savePtr = outWrite++;
+		uint32 p1 = table[*src++];
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+		outWrite = savePtr;
+	} while (--length);
+}
+
+void RenderLine_X3S1 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X3_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 p2 = table[*src];
+
+		//LINE
+		//p1 = ((p1&0xFEFEFE)>>1)+((p2&0xFEFEFE)>>1);
+		p1 = (p1+p2)>>1;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+	} while (--length);
+}
+
+
+
+
+void RenderLine_X3S2 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X3_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 p3 = *inCache;
+	
+		*inCache++=p1;	
+ 
+		//PHOSPHOR
+ 		p1 = (p1+p3)>>1;		
+
+		*outWrite = p1;
+
+                *(outWrite+640) = p1;
+                *outWrite++;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+	} while (--length);
+}
+
+void RenderLine_X3S3 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X3_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 p2 = table[*src];
+		uint32 p3 = *inCache;
+		uint32 p4 = p1;
+	
+		//LINE
+		p1 = (p1+p2)>>1;
+
+		*inCache=p1;	
+		*inCache++;
+ 
+		//PHOSPHOR
+ 		p1 = (p1+p3)>>1;		
+
+		*outWrite = p1;
+
+                *(outWrite+640) = p1;
+                *outWrite++;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+	} while (--length);
+}
+
+//DOTs
+void RenderLine_X3S4 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X3_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 pa = (p1&0xFEFEFE)>>1;
+		uint32 p2 = (p1&0x00FF00)|(pa&0xFF00FF);
+		uint32 p3 = (p1&0xFF0000)|(pa&0x00FFFF);
+		uint32 p4 = (p1&0x0000FF)|(pa&0xFFFF00);
+		*outWrite = p1;
+                *(outWrite+640) = p2;
+                *outWrite++;
+		*outWrite = p3;
+                *(outWrite+640) = p4;
+                *outWrite++;
+	} while (--length);
+}
+
+//-------------------------------------------------------------------------------------------
+
+#define PRE_X4_32  \
+	src[length]=src[length-1]; \
+	int soffset = (bitmap.pitch-(320*4))/2; \
+	uint8 *tmp2=(uint8*)&Cache[0] + ((offset+line*320)<<2);	\
+	uint32 *outWrite = (uint32*)bitmap.data + offset*4 + soffset + line*bitmap.pitch*4; \
+	uint32 *inCache = (uint32*)tmp2;	
+	
+void RenderLine_X4 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X4_32;
+	do {
+		uint32 p1 = table[*src++];
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+	} while (--length);
+}
+
+void RenderLine_X4S1 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X4_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 p2 = table[*src];
+
+		//LINE
+		//p1 = ((p1&0xFEFEFE)>>1)+((p2&0xFEFEFE)>>1);
+		p1 = (p1+p2)>>1;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+	} while (--length);
+}
+
+void RenderLine_X4S2 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X4_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 p3 = *inCache;
+	
+		*inCache++=p1;	
+ 
+		//PHOSPHOR
+ 		p1 = (p1+p3)>>1;		
+
+		*outWrite = p1;
+
+                *(outWrite+640) = p1;
+                *outWrite++;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+	} while (--length);
+}
+
+void RenderLine_X4S3 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X4_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 p2 = table[*src];
+		uint32 p3 = *inCache;
+		uint32 p4 = p1;
+	
+		//LINE
+		p1 = (p1+p2)>>1;
+
+		*inCache=p1;	
+		*inCache++;
+ 
+		//PHOSPHOR
+ 		p1 = (p1+p3)>>1;		
+
+		*outWrite = p1;
+
+                *(outWrite+640) = p1;
+                *outWrite++;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+	} while (--length);
+}
+
+//DOTs
+void RenderLine_X4S4 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+PRE_X4_32;
+	do {
+		uint32 p1 = table[*src++];
+		uint32 pa = (p1&0xFEFEFE)>>1;
+		uint32 p2 = (p1&0x00FF00)|(pa&0xFF00FF);
+		uint32 p3 = (p1&0xFF0000)|(pa&0x00FFFF);
+		uint32 p4 = (p1&0x0000FF)|(pa&0xFFFF00);
+		*outWrite = p1;
+                *(outWrite+640) = p2;
+                *outWrite++;
+		*outWrite = p3;
+                *(outWrite+640) = p4;
+                *outWrite++;
+	} while (--length);
+}
+
+
+
+/*
 void RenderLine_X2S5 (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 PRE_X2_32;
@@ -989,10 +1269,7 @@ PRE_X2_32;
                 *outWrite++;
 	} while (--length);
 }
-
-
-
-
+*/
 
 /*--------------------------------------------------------------------------*/
 /* Window rendering                                                         */

@@ -37,10 +37,10 @@ int  cdir = 0; //0 - rom path, 1 - genpp path, 2 - user-defined
 
 //Options
 
-int  scale = 4;
+int  scale = 3;
 
 uint8  benchmark = 0;
-uint8  renderer = 7;
+uint8  renderer = 0;
 uint8  fullscreen = 0;
 uint8  rotateright = 0;
 uint8  show_keys = 1;
