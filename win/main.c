@@ -37,9 +37,9 @@ int  cdir = 0; //0 - rom path, 1 - genpp path, 2 - user-defined
 
 //Options
 
-int  scale = 3;
-
-uint8  benchmark = 0;
+int  scale = 2;
+int  mt = 0;
+int  benchmark = 0;
 uint8  renderer = 0;
 uint8  fullscreen = 0;
 uint8  rotateright = 0;
@@ -250,7 +250,7 @@ Uint32 my_callbackfunc(Uint32 interval, void *param)
     same interval: */
 
     if (!paused) {
-    fprintf(stderr,"%d fps\n",(rendered_frames/10));
+    if (benchmark) fprintf(stderr,"%d fps\n",(rendered_frames/10));
     rendered_frames=0;
     }
 
@@ -1003,7 +1003,14 @@ Pause();
 SDL_QuitSubSystem(SDL_INIT_VIDEO);
 uint32 addflag = 0;
 if (fullscreen) addflag|=SDL_FULLSCREEN;
+
 screen = SDL_SetVideoMode(320*scale, 240*scale, 32, SDL_HWSURFACE|addflag);
+
+if (screen == NULL) { 
+	fprintf (stderr,"Nope!\n");
+	fullscreen = 0;
+	screen = SDL_SetVideoMode(320*scale, 240*scale, 32, SDL_HWSURFACE);
+}
 
 fprintf (stderr,"Videomode: %dx%dx%d pitch %d\n",screen->w,screen->h,screen->format->BitsPerPixel, (screen->pitch>>2) );
 bitmap.pitch = (screen->pitch>>2);
@@ -1361,13 +1368,13 @@ SDL_TimerID SDL_fps = SDL_AddTimer(10000, my_callbackfunc, 0);
     s_t = 0;
     GET_PCR;
 
-    if (benchmark) sound=0;
+    if (benchmark) { fprintf(stderr, "Benchmark mode. MT: %d\n", mt); sound=0; };
 
 if (sound) {
     audio_init(sound_rate);
     if (snd.enabled) sdl_soundstart(); else sound=0;
 }
-    sprintf(c,"Sound: %s @ %dHz",b2s(sound),sound_rate);
+    fprintf(stderr,"Sound: %s @ %dHz, Sem: %d, Z80: %d\n",b2s(sound),sound_rate,use_sem, use_z80 );
     AddMessage(c,100);
 
     system_reset();
@@ -1471,6 +1478,7 @@ if (sound) {
     if(event.key.keysym.sym==SDLK_F5) { state_save(1); break; }
     if(event.key.keysym.sym==SDLK_F9) { state_load(1,0); break; }	
     if(event.key.keysym.sym==SDLK_F3) { renderer++; if (renderer>8) renderer=0; ReinitRender(); break; }
+    if(event.key.keysym.sym==SDLK_F4) { scale++; if (scale>4) scale=2; ReinitScreen(); break; }
 
     if(event.key.keysym.sym==key_up) 	{ input.pad[0].data |= INPUT_UP; break; }
     if(event.key.keysym.sym==key_down)  { input.pad[0].data |= INPUT_DOWN; break; }
@@ -1570,10 +1578,24 @@ if(!paused)
          		ProcessMessages();
 #endif
 			if (xbrz) {
+				if (mt==0) {
+				if (scale==2) xBRZ_2X(0,0);
+				if (scale==3) xBRZ_3X(0,0);
+				if (scale==4) xBRZ_4X(0,0);
+				    }
+
+				if (mt==1) {
 				if (scale==2) xBRZ_2X_MT(0,0);
 				if (scale==3) xBRZ_3X_MT(0,0);
 				if (scale==4) xBRZ_4X_MT(0,0);
-			}
+				    }
+				if (mt==2) {
+				if (scale==2) xBRZ_2X_MT2(0,0);
+				if (scale==3) xBRZ_3X_MT2(0,0);
+				if (scale==4) xBRZ_4X_MT2(0,0);
+				    }
+
+				}
          		_FreeGAPIBuffer();
 
 	} else { system_frame_gens(1); }

@@ -1,3 +1,9 @@
+extern int  scale;
+extern int  mt;
+extern uint8  benchmark;
+extern uint8  renderer;
+extern uint8  fullscreen;
+
 extern uint8  sound;
 extern uint32 sound_rate;
 extern uint8  llsfilter;

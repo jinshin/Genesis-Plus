@@ -33,7 +33,7 @@ static const char *locopts_default(const char *key);
 #define DESC   "# %s\r\n# values: %s\r\n"
 #define VALUE  "%s = %s\r\n"
 #else
-#define HEADER "# Genesis Plus/PocketPC ROM configuration file\n\n"
+#define HEADER "# Genesis Plus/PC ROM configuration file\n\n"
 #define DESC   "# %s\n# values: %s\n"
 #define VALUE  "%s = %s\n\n"
 #endif
@@ -53,11 +53,11 @@ static t_opts locopts_opts[] = {
   { "samplerate",NULL,".",NULL},
   { "z80",	 NULL,".",NULL},
   { "frameskip", NULL,".",NULL},
-  { "landscape", NULL,".",NULL}, 
+//  { "landscape", NULL,".",NULL}, 
   { "country",   NULL,".",NULL},
   { "sixbuttonpad",NULL,".",NULL},
-  { "crop_screen", NULL,".",NULL}, 
-  { "key_switch",NULL,".",NULL},
+//  { "crop_screen", NULL,".",NULL}, 
+//  { "key_switch",NULL,".",NULL},
   { "key_start", NULL,".",NULL},
   { "key_mode",	 NULL,".",NULL},
   { "key_up",	 NULL,".",NULL},
@@ -74,6 +74,7 @@ static t_opts locopts_opts[] = {
   { "key_x",	 NULL,".",NULL},
   { "key_y",	 NULL,".",NULL},
   { "key_z",	 NULL,".",NULL},
+/*
   { "tapzones",	NULL,".",NULL},
   { "tapzone_1",NULL,".",NULL},
   { "tapzone_2",NULL,".",NULL},
@@ -84,6 +85,7 @@ static t_opts locopts_opts[] = {
   { "tapzone_7",NULL,".",NULL},
   { "tapzone_8",NULL,".",NULL},
   { "tapzone_9",NULL,".",NULL},
+*/
   { NULL, NULL, NULL, NULL }
 };
 

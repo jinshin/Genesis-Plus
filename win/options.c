@@ -8,6 +8,8 @@ const char *v;
   *par = atoi(v);
 }
 
+/*
+
 void get_tz(const char *s, uint32 *par)
 {
 const char *v;
@@ -30,6 +32,8 @@ int i;
   };
 }
 
+*/
+
 int lget_num_val(const char *s, uint32 *par)
 {
 const char *v;
@@ -39,6 +43,7 @@ const char *v;
 return 1;
 }
 
+/*
 int lget_tz(const char *s, uint32 *par)
 {
 const char *v;
@@ -62,6 +67,7 @@ int i;
   };
 return 1;
 }
+*/
 
 void get_global_opts() {
 const char * v;
@@ -79,15 +85,17 @@ v = gtkopts_getvalue("samplerate");
 v = gtkopts_getvalue("llsfilter");
     if (stricmp(v,"on")==0) {llsfilter=1;} else { llsfilter=0; };
 
+/*
 v = gtkopts_getvalue("rotateright");
     if (stricmp(v,"true")==0) {rotateright=1;};
-
+*/
 v = gtkopts_getvalue("sound_sem");
     if (stricmp(v,"true")==0) {use_sem=1;};
 
 v = gtkopts_getvalue("show_keys");
     if (stricmp(v,"true")==0) {show_keys=1;} else { show_keys=0; };
 
+/*
 v = gtkopts_getvalue("landscape");
     if (stricmp(v,"true")==0) {landscape=1;} else { landscape=0; };
 
@@ -95,7 +103,7 @@ v = gtkopts_getvalue("crop_screen");
     crop_screen=2; //auto
     if (stricmp(v,"true")==0) {crop_screen=1;};
     if (stricmp(v,"false")==0) {crop_screen=0;};
-
+*/
 v = gtkopts_getvalue("z80");
     if (stricmp(v,"off")==0) {use_z80=0;};
     if (stricmp(v,"on")==0) {use_z80=1;};
@@ -123,10 +131,27 @@ v = gtkopts_getvalue("country");
     if (stricmp(v,"j")==0) country=1;
     if (stricmp(v,"e")==0) country=8;
 
+v = gtkopts_getvalue("fullscreen");
+    if (stricmp(v,"true")==0) {fullscreen=1;} else { fullscreen=0; };
+
+v = gtkopts_getvalue("benchmark");    
+    if (stricmp(v,"true")==0) {benchmark=1;} else { benchmark=0; };
+
+v = gtkopts_getvalue("mt");
+    mt = 0;	
+    if (stricmp(v,"none")==0) mt=0;
+    if (stricmp(v,"two")==0) mt=1;
+    if (stricmp(v,"four")==0) mt=2;
+
+//
+    get_num_val("renderer",&renderer);
+
+    get_num_val("scale",&scale);
+
 v = gtkopts_getvalue("sixbuttonpad");
     if (stricmp(v,"true")==0) {sixbuttonpad=1;} else { sixbuttonpad=0; };
 
-get_num_val("key_switch",&key_switch);
+//get_num_val("key_switch",&key_switch);
 get_num_val("key_start",&key_start);
 get_num_val("key_up",&key_up);
 get_num_val("key_down",&key_down);
@@ -144,6 +169,7 @@ get_num_val("key_y",&key_y);
 get_num_val("key_z",&key_z);
 get_num_val("key_mode",&key_mode);
 
+/*
 get_num_val("tapzones",&temp);
 if (temp==6) tmod=2;
 if (temp==9) tmod=3;
@@ -157,6 +183,8 @@ get_tz("tapzone_6",&tzones[5]);
 get_tz("tapzone_7",&tzones[6]);
 get_tz("tapzone_8",&tzones[7]);
 get_tz("tapzone_9",&tzones[8]);
+
+*/
 
 }
 
@@ -206,7 +234,7 @@ v = locopts_getvalue("country");
 v = locopts_getvalue("sixbuttonpad");
     if (stricmp(v,"true")==0) {sixbuttonpad=1;} else { sixbuttonpad=0; };
 
-lget_num_val("key_switch",&key_switch);
+//lget_num_val("key_switch",&key_switch);
 lget_num_val("key_start",&key_start);
 lget_num_val("key_up",&key_up);
 lget_num_val("key_down",&key_down);
@@ -224,6 +252,7 @@ lget_num_val("key_y",&key_y);
 lget_num_val("key_z",&key_z);
 lget_num_val("key_mode",&key_mode);
 
+/*
 if (lget_num_val("tapzones",&temp)) {
 if (temp==6) tmod=2;
 if (temp==9) tmod=3;
@@ -238,6 +267,7 @@ lget_tz("tapzone_6",&tzones[5]);
 lget_tz("tapzone_7",&tzones[6]);
 lget_tz("tapzone_8",&tzones[7]);
 lget_tz("tapzone_9",&tzones[8]);
+*/
 
 }
 
@@ -265,8 +295,8 @@ if (!autofs) {
   sprintf(s,"%d",sound_rate);
   locopts_setvalue("samplerate",s);
 
-  if (tmod==2) locopts_setvalue("tapzones","6");
-  if (tmod==3) locopts_setvalue("tapzones","9");
+//  if (tmod==2) locopts_setvalue("tapzones","6");
+//  if (tmod==3) locopts_setvalue("tapzones","9");
 
   if (sixbuttonpad) locopts_setvalue("sixbuttonpad","true"); 
                else locopts_setvalue("sixbuttonpad","false");
@@ -285,7 +315,7 @@ if (!autofs) {
 	    locopts_setvalue(PAR2,v); };
 
 PCHECK("key_start");
-PCHECK("key_switch");
+//PCHECK("key_switch");
 PCHECK("key_up");
 PCHECK("key_down");
 PCHECK("key_left");
@@ -301,6 +331,7 @@ PCHECK("key_x");
 PCHECK("key_y");
 PCHECK("key_z");
 PCHECK("key_mode");
+/*
 PCHECK("tapzone_1");
 PCHECK("tapzone_2");
 PCHECK("tapzone_3");
@@ -310,4 +341,5 @@ PCHECK("tapzone_6");
 PCHECK("tapzone_7");
 PCHECK("tapzone_8");
 PCHECK("tapzone_9");
+*/
 }

@@ -831,6 +831,11 @@ extern void xBRZScale_2X_MT (uint32* input, uint32* output, int pitch);
 extern void xBRZScale_3X_MT (uint32* input, uint32* output, int pitch);
 extern void xBRZScale_4X_MT (uint32* input, uint32* output, int pitch);
 
+extern void xBRZScale_2X_MT2 (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_3X_MT2 (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_4X_MT2 (uint32* input, uint32* output, int pitch);
+
+
 void xBRZ_2X (uint32* input, uint32* output) {
 	xBRZScale_2X(&Buffer[0],bitmap.data,bitmap.pitch);
 } 
@@ -853,7 +858,21 @@ void xBRZ_3X_MT (uint32* input, uint32* output) {
 
 void xBRZ_4X_MT (uint32* input, uint32* output) {
 	xBRZScale_4X_MT(&Buffer[0],bitmap.data,bitmap.pitch);
+}
+
+
+void xBRZ_2X_MT2 (uint32* input, uint32* output) {
+	xBRZScale_2X_MT2(&Buffer[0],bitmap.data,bitmap.pitch);
+} 
+
+void xBRZ_3X_MT2 (uint32* input, uint32* output) {
+	xBRZScale_3X_MT2(&Buffer[0],bitmap.data,bitmap.pitch);
+} 
+
+void xBRZ_4X_MT2 (uint32* input, uint32* output) {
+	xBRZScale_4X_MT2(&Buffer[0],bitmap.data,bitmap.pitch);
 }  
+  
 
 extern int scale;
 
@@ -985,8 +1004,8 @@ void RenderLine_X3 (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 PRE_X3_32;
 	do {
-		if (line<2) fprintf(stderr,"%d %d %d %d\n",soffset,offset,outWrite,bitmap.data); 
-	        uint32 * savePtr = outWrite++;
+		//if (line<2) fprintf(stderr,"%d %d %d %d\n",soffset,offset,outWrite,bitmap.data); 
+	        //uint32 * savePtr = outWrite++;
 		uint32 p1 = table[*src++];
 		*outWrite++ = p1;
 		*outWrite++ = p1;
@@ -995,11 +1014,12 @@ PRE_X3_32;
 		*outWrite++ = p1;
 		*outWrite++ = p1;
 		*outWrite = p1;
-		outWrite+=(bitmap.pitch-2);
+                outWrite+=(bitmap.pitch-2);
 		*outWrite++ = p1;
 		*outWrite++ = p1;
-		*outWrite = p1;
-		outWrite = savePtr;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*2);
+		
 	} while (--length);
 }
 
@@ -1013,12 +1033,20 @@ PRE_X3_32;
 		//LINE
 		//p1 = ((p1&0xFEFEFE)>>1)+((p2&0xFEFEFE)>>1);
 		p1 = (p1+p2)>>1;
+
+		*outWrite++ = p1;
+		*outWrite++ = p1;
 		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
 		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
+                outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*2);
+
 	} while (--length);
 }
 
@@ -1037,13 +1065,19 @@ PRE_X3_32;
 		//PHOSPHOR
  		p1 = (p1+p3)>>1;		
 
+		*outWrite++ = p1;
+		*outWrite++ = p1;
 		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+                outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*2);
 
-                *(outWrite+640) = p1;
-                *outWrite++;
-		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
 	} while (--length);
 }
 
@@ -1065,13 +1099,19 @@ PRE_X3_32;
 		//PHOSPHOR
  		p1 = (p1+p3)>>1;		
 
+		*outWrite++ = p1;
+		*outWrite++ = p1;
 		*outWrite = p1;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p1;
+                outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*2);
 
-                *(outWrite+640) = p1;
-                *outWrite++;
-		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
 	} while (--length);
 }
 
@@ -1085,12 +1125,20 @@ PRE_X3_32;
 		uint32 p2 = (p1&0x00FF00)|(pa&0xFF00FF);
 		uint32 p3 = (p1&0xFF0000)|(pa&0x00FFFF);
 		uint32 p4 = (p1&0x0000FF)|(pa&0xFFFF00);
+
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite = p2;
+		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		*outWrite++ = p3;
 		*outWrite = p1;
-                *(outWrite+640) = p2;
-                *outWrite++;
-		*outWrite = p3;
-                *(outWrite+640) = p4;
-                *outWrite++;
+                outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p4;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*2);
+
 	} while (--length);
 }
 
@@ -1106,28 +1154,30 @@ PRE_X3_32;
 void RenderLine_X4 (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 PRE_X4_32;
+//fprintf(stderr," %d",line);
 	do {
 		uint32 p1 = table[*src++];
 		*outWrite++ = p1;
 		*outWrite++ = p1;
 		*outWrite++ = p1;
-		*outWrite = p1;
-		outWrite+=(bitmap.pitch-2);
+		*outWrite =   p1;
+		outWrite+=(bitmap.pitch-3);
 		*outWrite++ = p1;
 		*outWrite++ = p1;
 		*outWrite++ = p1;
-		*outWrite = p1;
-		outWrite+=(bitmap.pitch-2);
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
 		*outWrite++ = p1;
 		*outWrite++ = p1;
 		*outWrite++ = p1;
-		*outWrite = p1;
-		outWrite+=(bitmap.pitch-2);
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
 		*outWrite++ = p1;
 		*outWrite++ = p1;
 		*outWrite++ = p1;
-		*outWrite = p1;
-		outWrite+=(bitmap.pitch-2);
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*3);
+
 	} while (--length);
 }
 
@@ -1141,12 +1191,28 @@ PRE_X4_32;
 		//LINE
 		//p1 = ((p1&0xFEFEFE)>>1)+((p2&0xFEFEFE)>>1);
 		p1 = (p1+p2)>>1;
-		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
-		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
+
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+		outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*3);
+
 	} while (--length);
 }
 
@@ -1162,13 +1228,27 @@ PRE_X4_32;
 		//PHOSPHOR
  		p1 = (p1+p3)>>1;		
 
-		*outWrite = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+		outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*3);
 
-                *(outWrite+640) = p1;
-                *outWrite++;
-		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
 	} while (--length);
 }
 
@@ -1190,13 +1270,27 @@ PRE_X4_32;
 		//PHOSPHOR
  		p1 = (p1+p3)>>1;		
 
-		*outWrite = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+		outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		outWrite-=(bitmap.pitch*3);
 
-                *(outWrite+640) = p1;
-                *outWrite++;
-		*outWrite = p1;
-                *(outWrite+640) = p1;
-                *outWrite++;
 	} while (--length);
 }
 
@@ -1210,12 +1304,28 @@ PRE_X4_32;
 		uint32 p2 = (p1&0x00FF00)|(pa&0xFF00FF);
 		uint32 p3 = (p1&0xFF0000)|(pa&0x00FFFF);
 		uint32 p4 = (p1&0x0000FF)|(pa&0xFFFF00);
-		*outWrite = p1;
-                *(outWrite+640) = p2;
-                *outWrite++;
-		*outWrite = p3;
-                *(outWrite+640) = p4;
-                *outWrite++;
+
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite++ = p1;
+		*outWrite =   p1;
+		outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p2;
+		*outWrite++ = p2;
+		*outWrite =   p2;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p3;
+		*outWrite++ = p3;
+		*outWrite =   p4;
+                outWrite+=(bitmap.pitch-3);
+		*outWrite++ = p1;
+		*outWrite++ = p4;
+		*outWrite++ = p4;
+		*outWrite++ = p4;
+		outWrite-=(bitmap.pitch*3);
+
 	} while (--length);
 }
 

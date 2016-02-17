@@ -6,7 +6,7 @@
 #define _BSD_SOURCE 1
 #define __EXTENSIONS__ 1
 
-#define PACKAGE "Genesis Plus/PocketPC"
+#define PACKAGE "Genesis Plus/PC"
 
 #include <stdio.h>
 #include <string.h>
@@ -29,11 +29,11 @@ static const char *gtkopts_default(const char *key);
 #define CONFLINELEN 1024
 
 #ifndef _WFIX
-#define HEADER "# Genesis Plus/PocketPC main configuration file\r\n\r\n"
+#define HEADER "# Genesis Plus/Pocket PC main configuration file\r\n\r\n"
 #define DESC   "# %s\r\n# values: %s\r\n"
 #define VALUE  "%s = %s\r\n\r\n"
 #else
-#define HEADER "# Genesis Plus/PocketPC main configuration file\n\n"
+#define HEADER "# Genesis Plus/PC main configuration file\n\n"
 #define DESC   "# %s\n# values: %s\n"
 #define VALUE  "%s = %s\n\n"
 #endif
@@ -48,6 +48,11 @@ typedef struct {
 /* *INDENT-OFF* */
 
 static t_opts gtkopts_opts[] = {
+  { "scale","2, 3, 4", "2", "Scale output - 2X, 3X, 4X. Toggle with F4." },
+  { "mt","none, two, four", "0", "Multihreaded xBRZ filter. none - Single thread, two - Two threads, four - Four threads." },
+  { "renderer", "0..8", "0", "Plain, TV, Phosph, TV+Phosph, LCD, xBRZ, TV+xBRZ, Phosph+xBRZ, TV+Phosph+xBRZ, Toggle with F3." },
+  { "fullscreen", "true/false", "false", "Start fullscreen. Toggle with ESC." },
+  { "benchmark","true/false", "false", "Benchmark mode. Print fps to console, no sound, no sync." },
   { "show_keys", "true/false",	"true",	"Show pressed and not binded keys" },
   { "sound",	 "on/off",	"on",	"Sound on/off" },
   { "fastsound", "true/false",	"true",	"Update FM only once per frame - disable if music seem to be incorrect" },
@@ -57,14 +62,14 @@ static t_opts gtkopts_opts[] = {
   { "z80",	 "on/off",	 "on",	"Z80 emulation -  on or off"},
   { "country",	 "u/j/e or auto",	"auto",	        "Country code: u-USA, j-Japan, e-Europe or auto-Autodetect"},
   { "frameskip", "auto or 0..9",	"auto",	"Frameskip"},
-  { "rotateright", "true/false", "false","Rotate display right"},
-  { "landscape", "true/false", "true","Landscape mode"},
-  { "crop_screen", "auto/true/false", "false","Crop or shrink screen when in portrait mode or on square-screen device."}, 
+//  { "rotateright", "true/false", "false","Rotate display right"},
+//  { "landscape", "true/false", "true","Landscape mode"},
+//  { "crop_screen", "auto/true/false", "false","Crop or shrink screen when in portrait mode or on square-screen device."}, 
   { "romfolder", "Auto-Created", "\\","ROM's folder"},
   { "savefolder", "User-defined folder or 'romfolder','appfolder'", "romfolder","Where to place ROM's saves"},
   { "configfolder", "User-defined folder or 'romfolder','appfolder'", "romfolder","Where to place ROM's config files"},
   { "sixbuttonpad","true/false","false","Whether to emulate six or three button pad" },
-  { "key_switch","SDL keysym",	"193",	"Switch toolbar button" },
+//  { "key_switch","SDL keysym",	"193",	"Switch toolbar button" },
   { "key_start", "SDL keysym",	"13",	"Start button" },
   { "key_mode",	 "SDL keysym",	"197",	"Mode button" },
   { "key_up",	 "SDL keysym",	"273",	"Up" },
@@ -81,6 +86,7 @@ static t_opts gtkopts_opts[] = {
   { "key_x",	 "SDL keysym",	"197",	"'X' button" },
   { "key_y",	 "SDL keysym",	"198",	"'Y' button" },
   { "key_z",	 "SDL keysym",	"199",	"'Z' button" },
+/*
   { "tapzones",	 "6 or 9",	"6",	"Number of tap-zones" },
   { "tapzone_1","a,b,c,x,y,z,u,d,l,r",	"abc",	"TapZone 1" },
   { "tapzone_2","a,b,c,x,y,z,u,d,l,r",	"ab",	"TapZone 2" },
@@ -91,6 +97,7 @@ static t_opts gtkopts_opts[] = {
   { "tapzone_7","a,b,c,x,y,z,u,d,l,r",	"a",	"TapZone 7" },
   { "tapzone_8","a,b,c,x,y,z,u,d,l,r",	"b",	"TapZone 8" },
   { "tapzone_9","a,b,c,x,y,z,u,d,l,r",	"c",	"TapZone 9" },
+*/
   { NULL, NULL, NULL, NULL }
 };
 

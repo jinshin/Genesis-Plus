@@ -807,6 +807,85 @@ pthread_t tid;
 }
 
 
+//------------------------------------------------------Quad
+
+void *SliceOne2X2(void *vargp) {
+        scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 56, g_pitch);
+}
+
+void *SliceTwo2X2(void *vargp) {
+        scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 56, 112, g_pitch);
+}
+
+void *SliceThree2X2(void *vargp) {
+        scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 112, 168, g_pitch);
+}
+
+extern "C" void xBRZScale_2X_MT2 (rgbpixel* input, rgbpixel* output, int pitch) {
+pthread_t tid1;
+pthread_t tid2;
+pthread_t tid3;
+	   g_input = input;
+	   g_output = output;
+           g_pitch = pitch;
+           pthread_create(&tid1, NULL, SliceOne2X2, NULL);
+           pthread_create(&tid2, NULL, SliceTwo2X2, NULL);
+           pthread_create(&tid3, NULL, SliceThree2X2, NULL);
+           scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 168, 224, g_pitch);
+    	   pthread_join(tid1, NULL); pthread_join(tid2, NULL); pthread_join(tid3, NULL);
+}
+
+void *SliceOne3X2(void *vargp) {
+        scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 56, g_pitch);
+}
+
+void *SliceTwo3X2(void *vargp) {
+        scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 56, 112, g_pitch);
+}
+
+void *SliceThree3X2(void *vargp) {
+        scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 112, 168, g_pitch);
+}
+
+extern "C" void xBRZScale_3X_MT2 (rgbpixel* input, rgbpixel* output, int pitch) {
+pthread_t tid1;
+pthread_t tid2;
+pthread_t tid3;
+	   g_input = input;
+	   g_output = output;
+           g_pitch = pitch;
+           pthread_create(&tid1, NULL, SliceOne3X2, NULL);
+           pthread_create(&tid2, NULL, SliceTwo3X2, NULL);
+           pthread_create(&tid3, NULL, SliceThree3X2, NULL);
+           scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 168, 224, g_pitch);
+    	   pthread_join(tid1, NULL); pthread_join(tid2, NULL); pthread_join(tid3, NULL);
+}
+void *SliceOne4X2(void *vargp) {
+        scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 56, g_pitch);
+}
+
+void *SliceTwo4X2(void *vargp) {
+        scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 56, 112, g_pitch);
+}
+
+void *SliceThree4X2(void *vargp) {
+        scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 112, 168, g_pitch);
+}
+
+extern "C" void xBRZScale_4X_MT2 (rgbpixel* input, rgbpixel* output, int pitch) {
+pthread_t tid1;
+pthread_t tid2;
+pthread_t tid3;
+	   g_input = input;
+	   g_output = output;
+           g_pitch = pitch;
+           pthread_create(&tid1, NULL, SliceOne4X2, NULL);
+           pthread_create(&tid2, NULL, SliceTwo4X2, NULL);
+           pthread_create(&tid3, NULL, SliceThree4X2, NULL);
+           scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 168, 224, g_pitch);
+    	   pthread_join(tid1, NULL); pthread_join(tid2, NULL); pthread_join(tid3, NULL);
+}
+
 extern "C" void xBRZScale_Init() {
 //stub
 }
