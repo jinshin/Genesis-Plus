@@ -426,16 +426,23 @@ void scalePixel(const Kernel_3x3& ker,unsigned int* target, int trgWidth,
 
 
 template <class Scaler> //scaler policy: see "Scaler2x" reference implementation
-void scaleImage(const unsigned int* src, unsigned int* trg, int srcWidth, int srcHeight, int yFirst, int yLast) {
+void scaleImage(const unsigned int* src, unsigned int* trg, int srcWidth, int srcHeight, int yFirst, int yLast, int trgPitch) {
 	/*yFirst = ((yFirst<0)?(0):(yFirst));
 	yLast  = ((!(srcHeight<yLast))?(yLast):(srcHeight));
 	if (yFirst >= yLast || srcWidth <= 0)
 		return;*/
 	const int trgWidth = srcWidth * Scaler::scale;
+	//n0p - we get pitch in pixels.
+	const int trgIWidth = trgPitch;
+	const int trgIOffset = (trgIWidth - trgWidth) / 2;
+	//fprintf (stderr,"%d %d\n",trgIWidth,trgIOffset);
 	//"use" space at the end of the image as temporary buffer for "on the fly preprocessing": we even could use larger area of
 	//"sizeof(uint32_t) * srcWidth * (yLast - yFirst)" bytes without risk of accidental overwriting before accessing
 	const int bufferSize = srcWidth;
-	unsigned char* preProcBuffer = reinterpret_cast<unsigned char*>(trg + yLast * Scaler::scale * trgWidth) - bufferSize;
+
+	//unsigned char* preProcBuffer = reinterpret_cast<unsigned char*>(trg + yLast * Scaler::scale * trgWidth) - bufferSize;
+	unsigned char* preProcBuffer = reinterpret_cast<unsigned char*>(trg + yLast * Scaler::scale * trgIWidth + trgIOffset) - bufferSize;
+
 	//std::fill(preProcBuffer, preProcBuffer + bufferSize, 0);
 	//initialize preprocessing buffer for first row: detect upper left and right corner blending
 	//this cannot be optimized for adjacent processing stripes; we must not allow for a memory race condition!
@@ -484,7 +491,10 @@ void scaleImage(const unsigned int* src, unsigned int* trg, int srcWidth, int sr
 	unsigned int* tt; // new
 	unsigned int ii, jj; // new
 	for (int y = yFirst; y < yLast; ++y) {
-		unsigned int* out = trg + Scaler::scale * y * trgWidth; //consider MT "striped" access
+		//n0p
+		//unsigned int* out = trg + Scaler::scale * y * trgWidth; //consider MT "striped" access
+		unsigned int* out = trg + trgIOffset + Scaler::scale * y * trgIWidth;
+
 		const unsigned int* s_m1 = src + srcWidth * (y-((y>0)?(1):(0)));
 		const unsigned int* s_0  = src + srcWidth * y; //center line
 		const unsigned int* s_p1 = src + srcWidth * ((!(srcHeight-1<y+1))?(y+1):(srcHeight-1));
@@ -535,7 +545,7 @@ void scaleImage(const unsigned int* src, unsigned int* trg, int srcWidth, int sr
 			//fill block of size scale * scale with the given color
 			//fillBlock(out, trgWidth * sizeof(unsigned int), s_0[x], Scaler::scale); //place *after* preprocessing step, to not overwrite the results while processing the the last pixel!
 			// new start
-			for (ii = 0, tt = out; ii < Scaler::scale; ++ii, tt += trgWidth)
+			for (ii = 0, tt = out; ii < Scaler::scale; ++ii, tt += trgIWidth)
 				for (jj = 0; jj < Scaler::scale; ++jj)
 					tt[jj] = s_0[x];
 			// end new
@@ -551,10 +561,10 @@ void scaleImage(const unsigned int* src, unsigned int* trg, int srcWidth, int sr
 				ker.g = s_p1[x_m1];
 				ker.h = s_p1[x];
 				ker.i = s_p1[x_p1];
-				scalePixel<Scaler, ROT_0  >(ker, out, trgWidth, blend_xy);
-				scalePixel<Scaler, ROT_90 >(ker, out, trgWidth, blend_xy);
-				scalePixel<Scaler, ROT_180>(ker, out, trgWidth, blend_xy);
-				scalePixel<Scaler, ROT_270>(ker, out, trgWidth, blend_xy);
+				scalePixel<Scaler, ROT_0  >(ker, out, trgIWidth, blend_xy);
+				scalePixel<Scaler, ROT_90 >(ker, out, trgIWidth, blend_xy);
+				scalePixel<Scaler, ROT_180>(ker, out, trgIWidth, blend_xy);
+				scalePixel<Scaler, ROT_270>(ker, out, trgIWidth, blend_xy);
 			}
 		}
 	}
@@ -736,55 +746,63 @@ struct Scaler4x {
 
 rgbpixel* g_input;
 rgbpixel* g_output;
+int       g_pitch;
 
-extern "C" void xBRZScale_2X (rgbpixel* input, rgbpixel* output) {
-           scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224);
+
+//Single-threaded
+extern "C" void xBRZScale_2X (rgbpixel* input, rgbpixel* output, int pitch) {
+           scaleImage<Scaler2x>((unsigned int*)input, (unsigned int*)output, 320, 224, 0, 224, pitch);
 }
 
-extern "C" void xBRZScale_3X (rgbpixel* input, rgbpixel* output) {
-           scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224);
+extern "C" void xBRZScale_3X (rgbpixel* input, rgbpixel* output, int pitch) {
+           scaleImage<Scaler3x>((unsigned int*)input, (unsigned int*)output, 320, 224, 0, 224, pitch);
 }
 
-extern "C" void xBRZScale_4X (rgbpixel* input, rgbpixel* output) {
-           scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224);
+extern "C" void xBRZScale_4X (rgbpixel* input, rgbpixel* output, int pitch) {
+           scaleImage<Scaler4x>((unsigned int*)input, (unsigned int*)output, 320, 224, 0, 224, pitch);
 }
 
+
+//Double-threaded
 void *SliceOne2X(void *vargp) {
-        scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2);
+        scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2, g_pitch);
 }
 
-extern "C" void xBRZScale_2X_MT (rgbpixel* input, rgbpixel* output) {
+extern "C" void xBRZScale_2X_MT (rgbpixel* input, rgbpixel* output, int pitch) {
 pthread_t tid;
 	   g_input = input;
 	   g_output = output;
+           g_pitch = pitch;
            pthread_create(&tid, NULL, SliceOne2X, NULL);
-           scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224);
+           scaleImage<Scaler2x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224, g_pitch);
     	   pthread_join(tid, NULL);
 }
 
 void *SliceOne3X(void *vargp) {
-        scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2);
+        scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2, g_pitch);
 }
 
-extern "C" void xBRZScale_3X_MT (rgbpixel* input, rgbpixel* output) {
+extern "C" void xBRZScale_3X_MT (rgbpixel* input, rgbpixel* output, int pitch) {
 pthread_t tid;
 	   g_input = input;
 	   g_output = output;
+           g_pitch = pitch;
            pthread_create(&tid, NULL, SliceOne3X, NULL);
-           scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224);
+           scaleImage<Scaler3x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224, g_pitch);
     	   pthread_join(tid, NULL);
 }
 
 void *SliceOne4X(void *vargp) {
-        scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2);
+        scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 0, 224/2, g_pitch);
 }
 
-extern "C" void xBRZScale_4X_MT (rgbpixel* input, rgbpixel* output) {
+extern "C" void xBRZScale_4X_MT (rgbpixel* input, rgbpixel* output, int pitch) {
 pthread_t tid;
 	   g_input = input;
 	   g_output = output;
+           g_pitch = pitch;
            pthread_create(&tid, NULL, SliceOne4X, NULL);
-           scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224);
+           scaleImage<Scaler4x>((unsigned int*)g_input, (unsigned int*)g_output, 320, 224, 224/2, 224, g_pitch);
     	   pthread_join(tid, NULL);
 }
 

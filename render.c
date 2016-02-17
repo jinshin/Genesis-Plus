@@ -217,11 +217,25 @@ void RenderLine_X1S1_Buffer (uint8 *src, int line, int offset, uint32 *table, in
 void RenderLine_X1S2_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X1S3_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X1S4_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
+
 void RenderLine_X2 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X2S1 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X2S2 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X2S3 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X2S4 (uint8 *src, int line, int offset, uint32 *table, int length);
+
+void RenderLine_X3 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X3S1 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X3S2 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X3S3 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X3S4 (uint8 *src, int line, int offset, uint32 *table, int length);
+
+void RenderLine_X4 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X4S1 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X4S2 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X4S3 (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X4S4 (uint8 *src, int line, int offset, uint32 *table, int length);
+
 //void RenderLine_X2S5 (uint8 *src, int line, int offset, uint32 *table, int length);
 //void RenderLine_X2S6 (uint8 *src, int line, int offset, uint32 *table, int length);
 #endif
@@ -241,6 +255,7 @@ void set_renderer()
 #ifdef _WFIX
 	if (lcd) { RenderLine = RenderLine_X2S4; exit; }
 
+
 switch (renderer) {
 	
 	case 0: xbrz=0; RenderLine = RenderLine_X2; break;
@@ -253,6 +268,8 @@ switch (renderer) {
 	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
 	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
 }
+
+
 #else
 extern uint8 fast_vid;
 extern uint8 NeedMessage;
@@ -779,38 +796,37 @@ PRE_X2_32_BUF;
 	} while (--length);
 }
 
-extern void xBRZScale_2X (uint32* input, uint32* output);
-extern void xBRZScale_3X (uint32* input, uint32* output);
-extern void xBRZScale_4X (uint32* input, uint32* output);
+extern void xBRZScale_2X (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_3X (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_4X (uint32* input, uint32* output, int pitch);
 
-extern void xBRZScale_2X_MT (uint32* input, uint32* output);
-extern void xBRZScale_3X_MT (uint32* input, uint32* output);
-extern void xBRZScale_4X_MT (uint32* input, uint32* output);
+extern void xBRZScale_2X_MT (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_3X_MT (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_4X_MT (uint32* input, uint32* output, int pitch);
 
 void xBRZ_2X (uint32* input, uint32* output) {
-	xBRZScale_2X(&Buffer[0],bitmap.data);
+	xBRZScale_2X(&Buffer[0],bitmap.data,bitmap.pitch);
 } 
 
 void xBRZ_3X (uint32* input, uint32* output) {
-	xBRZScale_3X(&Buffer[0],bitmap.data);
+	xBRZScale_3X(&Buffer[0],bitmap.data,bitmap.pitch);
 } 
 
 void xBRZ_4X (uint32* input, uint32* output) {
-	xBRZScale_4X(&Buffer[0],bitmap.data);
+	xBRZScale_4X(&Buffer[0],bitmap.data,bitmap.pitch);
 }
 
 void xBRZ_2X_MT (uint32* input, uint32* output) {
-	xBRZScale_2X_MT(&Buffer[0],bitmap.data);
+	xBRZScale_2X_MT(&Buffer[0],bitmap.data,bitmap.pitch);
 } 
 
 void xBRZ_3X_MT (uint32* input, uint32* output) {
-	xBRZScale_3X_MT(&Buffer[0],bitmap.data);
+	xBRZScale_3X_MT(&Buffer[0],bitmap.data,bitmap.pitch);
 } 
 
 void xBRZ_4X_MT (uint32* input, uint32* output) {
-	xBRZScale_4X_MT(&Buffer[0],bitmap.data);
+	xBRZScale_4X_MT(&Buffer[0],bitmap.data,bitmap.pitch);
 }  
-
 
 extern int scale;
 

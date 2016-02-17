@@ -37,7 +37,7 @@ int  cdir = 0; //0 - rom path, 1 - genpp path, 2 - user-defined
 
 //Options
 
-int  scale = 2;
+int  scale = 4;
 
 uint8  benchmark = 0;
 uint8  renderer = 7;
@@ -1005,6 +1005,9 @@ uint32 addflag = 0;
 if (fullscreen) addflag|=SDL_FULLSCREEN;
 screen = SDL_SetVideoMode(320*scale, 240*scale, 32, SDL_HWSURFACE|addflag);
 
+fprintf (stderr,"Videomode: %dx%dx%d pitch %d\n",screen->w,screen->h,screen->format->BitsPerPixel, (screen->pitch>>2) );
+bitmap.pitch = (screen->pitch>>2);
+
 extern HWND SDL_Window;
 SetWindowTextW(SDL_Window,L"Genesis Plus/PC");
 
@@ -1317,7 +1320,7 @@ SetWindowText(SDL_Window,L"Genesis Plus/PC");
     bitmap.height = 240;
     bitmap.depth  = 16;
     bitmap.granularity = 2;
-    bitmap.pitch = (bitmap.width * bitmap.granularity);
+    bitmap.pitch = screen->pitch>>2;
     bitmap.data   = NULL;
     bitmap.viewport.w = 256;
     bitmap.viewport.h = 224;
