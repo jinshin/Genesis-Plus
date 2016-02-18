@@ -1201,7 +1201,7 @@ char rp[MAX_PATH];
    ofn.hwndOwner = SDL_Window;
    ofn.lpstrFile = szFile;
    ofn.nMaxFile = MAX_PATH;
-   ofn.lpstrFilter = TEXT("Genesis/Megadrive ROMs\0*.bin;*.smd;*.gen;*.zip\0");
+   ofn.lpstrFilter = TEXT("Genesis/Megadrive ROMs\0*.bin;*.smd;*.gen;*.zip;*.md\0");
    ofn.lpstrTitle = TEXT("GenPP - Select ROM");
 
 const char * v1 = gtkopts_getvalue("romfolder");
@@ -1684,7 +1684,7 @@ int sdl_soundstop(void)
 #ifdef _WFIX
 unsigned char * _GetGAPIBuffer(void)
 {
-	return screen->pixels;
+	return screen->pixels+(screen->pitch*8)*scale;
 }
 
 void _FreeGAPIBuffer(void)
