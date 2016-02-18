@@ -1394,6 +1394,13 @@ if (sound) {
 					break;
 
 				case SDL_ACTIVEEVENT:
+
+				   if(event.active.state != SDL_APPMOUSEFOCUS) {   
+     					if(event.active.gain == 1) { SDL_ShowCursor(0);
+					} else {   
+					SDL_ShowCursor(1); } 
+					}   
+
 					if(event.active.state & (0x10))
 					{
 #ifndef _WFIX
@@ -1401,6 +1408,7 @@ if (sound) {
 #else
 						if (!event.active.gain) { Pause(); ToolbarState=1; PrepareToolbar(1); UpdateToolbar(); } else { UpdateToolbar(); SetForegroundWindow(SDL_Window); };
 #endif
+
 					}
 					break;
 
