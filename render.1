@@ -201,6 +201,16 @@ extern uint8 crop_screen;
 
 void (*RenderLine) (uint8 *src, int line, int offset, uint32 *table, int length);
 
+#ifndef _WFIX
+void RenderLine_RL (uint8 *src, int line, int offset, uint16 *table, int length);
+void RenderLine_RR (uint8 *src, int line, int offset, uint16 *table, int length);
+void RenderLine_P  (uint8 *src, int line, int offset, uint16 *table, int length);
+void RenderLine_P_Crop  (uint8 *src, int line, int offset, uint16 *table, int length);
+void RenderLine_RL_F (uint8 *src, int line, int offset, uint16 *table, int length);
+void RenderLine_RR_F (uint8 *src, int line, int offset, uint16 *table, int length);
+void RenderLine_P_F  (uint8 *src, int line, int offset, uint16 *table, int length);
+void RenderLine_P_Crop_F  (uint8 *src, int line, int offset, uint16 *table, int length);
+#else 
 void RenderLine_X1 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X1_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X1S1_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
@@ -226,6 +236,9 @@ void RenderLine_X4S2 (uint8 *src, int line, int offset, uint32 *table, int lengt
 void RenderLine_X4S3 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X4S4 (uint8 *src, int line, int offset, uint32 *table, int length);
 
+//void RenderLine_X2S5 (uint8 *src, int line, int offset, uint32 *table, int length);
+//void RenderLine_X2S6 (uint8 *src, int line, int offset, uint32 *table, int length);
+#endif
 
 /*--------------------------------------------------------------------------*/
 /* Init, reset, shutdown routines                                           */
@@ -237,15 +250,15 @@ extern int   scale;
 uint8	phos = 0;
 uint8   lcd = 0;
 
-uint32 Buffer[642*480];
+uint32 Buffer[640*480];
 
-uint32 Cache[642*480];
+uint32 Cache[640*480];
 
 
 void set_renderer()
 {
-memset(&Cache[0],0,642*480*4);
-memset(&Buffer[0],0,642*480*4);
+memset(&Cache[0],0,640*480*4);
+memset(&Buffer[0],0,640*480*4);
 
 if (scale <= 2) {
    switch (renderer) {
@@ -291,6 +304,52 @@ if (scale == 4) {
 	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
 	}
 }
+#if 0
+extern uint8 fast_vid;
+extern uint8 NeedMessage;
+extern uint8 UncachedRender;
+extern FILE *mylog;
+if ((!fast_vid)|(NeedMessage)) {
+    if (rotateright) { RenderLine = RenderLine_RR; } else { RenderLine = RenderLine_RL; };
+    if (!landscape) { 
+		if (!crop_screen) RenderLine = RenderLine_P; else if (crop_screen==2) {
+									if (vdp.reg[12] & 1) RenderLine = RenderLine_P; else RenderLine = RenderLine_P_Crop;
+									}
+									else RenderLine = RenderLine_P_Crop;
+		}
+    if (square_screen) {
+      		if (!crop_screen) RenderLine = RenderLine_P; else if (crop_screen==2) {
+									if (vdp.reg[12] & 1) RenderLine = RenderLine_P; else RenderLine = RenderLine_P_Crop;
+									}
+									else RenderLine = RenderLine_P_Crop;
+		}
+
+//fprintf(stderr,("Using cached render\n"));
+
+UncachedRender=0;
+
+} else
+{
+    if (rotateright) { RenderLine = RenderLine_RR_F; } else { RenderLine = RenderLine_RL_F; };
+    if (!landscape) { 
+		if (!crop_screen) RenderLine = RenderLine_P_F; else if (crop_screen==2) {
+									if (vdp.reg[12] & 1) RenderLine = RenderLine_P_F; else RenderLine = RenderLine_P_Crop_F;
+									}
+									else RenderLine = RenderLine_P_Crop_F;
+		}
+    if (square_screen) {
+      		if (!crop_screen) RenderLine = RenderLine_P_F; else if (crop_screen==2) {
+									if (vdp.reg[12] & 1) RenderLine = RenderLine_P_F; else RenderLine = RenderLine_P_Crop_F;
+									}
+									else RenderLine = RenderLine_P_Crop_F;
+		}
+
+//fprintf(stderr,("Using uncached render\n"));
+
+UncachedRender=1;
+
+}
+#endif
 }
 
 int render_init(void)
@@ -491,6 +550,221 @@ void render_line(int line)
 
 }
 
+#if 0
+
+extern uint16 ScreenCache[320*240];
+
+#define MUL320(x) ((x<<8)+(x<<6))
+#define MUL240(x) ((x<<8)-(x<<4))
+
+void RenderLine_RL (uint8 *src, int line, int offset, uint16 *table, int length)
+{
+#undef  OUTPIXELPITCH
+#define OUTPIXELPITCH (-240)
+uint16 * outWrite;
+uint16 * outCache;
+uint8 * tmp;
+
+tmp = (uint8*)bitmap.data + ((MUL240(319-offset)+line)<<1);
+outWrite = (uint16*)tmp;
+tmp = (uint8*)ScreenCache + ((MUL320(line)+offset)<<1);
+outCache = (uint16*)tmp;
+	do {
+		uint16 val = table[*src++];
+		if (val!=*outCache) {
+			*outWrite = val;
+			*outCache = val;
+			}
+		outWrite+=OUTPIXELPITCH;
+		outCache++;
+	} while (--length);
+}
+
+
+void RenderLine_RR (uint8 *src, int line, int offset, uint16 *table, int length)
+{
+#undef  OUTPIXELPITCH
+#define OUTPIXELPITCH (240)
+uint16 * outWrite;
+uint16 * outCache;
+uint8 * tmp;
+tmp = (uint8*)bitmap.data + ((MUL240(offset)-line+239)<<1);
+outWrite = (uint16*)tmp;
+tmp = (uint8*)ScreenCache + ((MUL320(line)+offset)<<1);
+outCache = (uint16*)tmp;
+	do {
+		uint16 val = table[*src++];
+		if (val!=*outCache) {
+                        *outWrite = val;
+			*outCache = val;
+			//*outWrite = ((val&0xF7DE)>>1)+((*outCache&0xF7DE)>>1);
+			//*outCache = ((val&0xF7DE)>>1)+((*outCache&0xF7DE)>>1);
+			}
+		outWrite+=OUTPIXELPITCH;
+		outCache++;
+	} while (--length);
+}
+
+void RenderLine_P (uint8 *src, int line, int offset, uint16 *table, int length)
+
+#define RB_MASK 0xF81F
+#define G_MASK  0x07E0
+
+#define RB(x) ((x&RB_MASK)<<8)
+#define G(x)  ((x&G_MASK)<<3)
+
+#define P25(x) (x>>2)
+#define P50(x) (x>>1)
+#define P75(x) ((x>>1)+(x>>2))
+
+#define MAKEPIXEL(rb,g) (((rb>>8)&RB_MASK | (g>>3)&G_MASK))
+
+{
+uint16 * outWrite;
+uint16 * outCache;
+uint8 * tmp;
+tmp = (uint8*)bitmap.data + ((MUL240(line)+P75(offset))<<1);
+outWrite = (uint16*)tmp;
+tmp = (uint8*)ScreenCache + ((MUL240(line)+P75(offset))<<1);
+outCache = (uint16*)tmp;
+length = length>>2; //We'll process 4 pixels at one shot
+	do {
+		uint16 p1 = table[*src++];
+		uint16 p2 = table[*src++];
+		uint16 p3 = table[*src++];
+		uint16 p4 = table[*src++];
+		uint16 val = MAKEPIXEL(P75(RB(p1))+P25(RB(p2)),P75(G(p1))+P25(G(p2)));
+		if (val!=*outCache) {
+			*outWrite = val;
+			*outCache = val;
+			}
+		outWrite++;
+		outCache++;
+		val = MAKEPIXEL(P50(RB(p2))+P50(RB(p3)),P50(G(p2))+P50(G(p3)));
+		if (val!=*outCache) {
+			*outWrite = val;
+			*outCache = val;
+			}
+		outWrite++;
+		outCache++;
+		val = MAKEPIXEL(P25(RB(p3))+P75(RB(p4)),P25(G(p3))+P75(G(p4)));
+		if (val!=*outCache) {
+			*outWrite = val;
+			*outCache = val;
+			}
+		outWrite++;
+		outCache++;
+	} while (--length);
+}
+
+void RenderLine_P_Crop (uint8 *src, int line, int offset, uint16 *table, int length)
+
+{
+uint16 * outWrite;
+uint16 * outCache;
+uint8 * tmp;
+if (length==320) src+=40; else src+=8;
+tmp = (uint8*)bitmap.data + ((MUL240(line))<<1);
+outWrite = (uint16*)tmp;
+tmp = (uint8*)ScreenCache + ((MUL240(line))<<1);
+outCache = (uint16*)tmp;
+length = 240; 
+	do {
+		uint32 val = table[*src++];
+		if (val!=*outCache) {
+			*outWrite = val;
+			*outCache = val;
+			}
+		outWrite++;
+		outCache++;
+	} while (--length);
+}
+
+
+//Uncached
+
+void RenderLine_RL_F (uint8 *src, int line, int offset, uint16 *table, int length)
+{
+#undef  OUTPIXELPITCH
+#define OUTPIXELPITCH (-240)
+uint16 * outWrite;
+uint8 * tmp;
+
+tmp = (uint8*)bitmap.data + ((MUL240(319-offset)+line)<<1);
+outWrite = (uint16*)tmp;
+	do {
+		*outWrite = table[*src++];
+		outWrite+=OUTPIXELPITCH;
+	} while (--length);
+}
+
+void RenderLine_RR_F (uint8 *src, int line, int offset, uint16 *table, int length)
+{
+#undef  OUTPIXELPITCH
+#define OUTPIXELPITCH (240)
+uint16 * outWrite;
+uint8 * tmp;
+tmp = (uint8*)bitmap.data + ((MUL240(offset)-line+239)<<1);
+outWrite = (uint16*)tmp;
+	do {
+		*outWrite = table[*src++];
+		outWrite+=OUTPIXELPITCH;
+	} while (--length);
+}
+
+void RenderLine_P_F (uint8 *src, int line, int offset, uint16 *table, int length)
+
+#define RB_MASK 0xF81F
+#define G_MASK  0x07E0
+
+#define RB(x) ((x&RB_MASK)<<8)
+#define G(x)  ((x&G_MASK)<<3)
+
+#define P25(x) (x>>2)
+#define P50(x) (x>>1)
+#define P75(x) ((x>>1)+(x>>2))
+
+#define MAKEPIXEL(rb,g) (((rb>>8)&RB_MASK | (g>>3)&G_MASK))
+
+{
+uint16 * outWrite;
+uint8 * tmp;
+tmp = (uint8*)bitmap.data + ((MUL240(line)+P75(offset))<<1);
+outWrite = (uint16*)tmp;
+length = length>>2; //We'll process 4 pixels at one shot
+	do {
+		uint16 p1 = table[*src++];
+		uint16 p2 = table[*src++];
+		uint16 p3 = table[*src++];
+		uint16 p4 = table[*src++];
+		uint16 val = MAKEPIXEL(P75(RB(p1))+P25(RB(p2)),P75(G(p1))+P25(G(p2)));
+			*outWrite++ = val;
+		val = MAKEPIXEL(P50(RB(p2))+P50(RB(p3)),P50(G(p2))+P50(G(p3)));
+			*outWrite++ = val;
+		val = MAKEPIXEL(P25(RB(p3))+P75(RB(p4)),P25(G(p3))+P75(G(p4)));
+			*outWrite++ = val;
+	} while (--length);
+}
+
+void RenderLine_P_Crop_F (uint8 *src, int line, int offset, uint16 *table, int length)
+
+{
+uint32 * outWrite;
+uint8 * tmp;
+if (length==320) src+=40; else src+=8;
+tmp = (uint8*)bitmap.data + ((MUL240(line))<<1);
+outWrite = (uint32*)tmp;
+length = 240/2; 
+	do {
+
+		uint32 val = (table[*src++]);
+		val = val + ((table[*src++])<<16);
+		*outWrite++ = val;
+	} while (--length);
+}
+
+
+#endif
 
 void RenderLine_X1 (uint8 *src, int line, int offset, uint32 *table, int length)
 {
@@ -501,14 +775,14 @@ uint32* outWrite = (uint32*)tmp;
 	} while (--length);
 }
 
-#define PRE_X1_32_BUF  \
+#define PRE_X2_32_BUF  \
 	src[length]=src[length-1]; \
 	uint32 *outWrite = &Buffer[0] + offset+line*320; \
 	uint32 *inCache = &Cache[0] + offset+line*320;	
 
 void RenderLine_X1_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
 {
-PRE_X1_32_BUF;
+PRE_X2_32_BUF;
 	do {
 		*outWrite++ = table[*src++];
 	} while (--length);
@@ -516,7 +790,7 @@ PRE_X1_32_BUF;
 
 void RenderLine_X1S1_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
 {
-PRE_X1_32_BUF;
+PRE_X2_32_BUF;
 	do {
 		uint32 p1 = table[*src++];
 		uint32 p2 = table[*src];
@@ -525,10 +799,129 @@ PRE_X1_32_BUF;
 	} while (--length);
 }
 
+uint32 Line[320+4];
+
+
+if 
+void RenderLine_X1S1_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+
+int	s_length = length;
+
+
+
+	Line[0]=Line[1]=Line[length+2]=Line[length+3]=0;
+
+	src[length]=src[length-1]; 
+	//uint32 *outWrite = &Buffer[0] + offset + line*320; 
+	//uint32 *inCache = &Cache[0] + offset+line*320;
+	uint32 *outWrite = &Line[2];		
+	
+	do {
+		*outWrite++ = table[*src++];
+	} while (--length);
+
+        outWrite = &Buffer[0] + offset + line*320;
+
+	for (int ii=2;ii<(s_length+2);ii++) {		
+
+		uint32 p1 = Line[ii-2];
+		uint32 p2 = Line[ii-1];
+		uint32 p3 = Line[ii];
+		uint32 p4 = Line[ii+1];
+		uint32 p5 = Line[ii+2];
+
+		uint32 thepixel = p3;
+
+/* 
+////// V1
+		if (p2==p4)
+			thepixel = (p3+p4)>>1;
+
+		if (p4==p5)
+			thepixel = p3;
+		if (p1==p2)
+			thepixel = p3;
+
+		*outWrite++ = thepixel;
+*/
+
+		if (p2==p4) {
+
+			thepixel = (p3+p4)>>1;
+
+		if (p4==p5)
+			thepixel = p3;
+		if (p1==p2)
+			thepixel = p3;
+
+
+			//*(outWrite-1)   = (p2+p3)>>1;
+			*outWrite = thepixel;
+			*(outWrite+1) = (p4+p5)>>1;
+				
+		} else *outWrite = p3; 
+			outWrite++;
+
+
+	}
+
+}
+#endif
+
+#if 0
+RenderLine_X1S1_Buffer (uint8 *src, int line, int offset, uint32 *table, int length) 
+{
+PRE_X2_32_BUF;
+int s_length = length;
+	do {
+
+		*inCache++ = table[*src++];
+	} while (--s_length);
+
+s_length = length;
+	*outWrite = &Buffer[0] + offset+line*320; 
+	*inCache = &Cache[0] + offset+line*320;	
+
+	do {
+
+		uint32 p1 = *inCache;  //Left pixel
+		uint32 p2 = *(inCache+1);
+		uint32 p3 = *(inCache+2); //Right pixel
+		uint32 p4 = *(inCache+3);
+
+		if (p1==p3) {
+		      if (p3==p4) {
+		        *outWrite = p1;
+			outWrite+=1;
+			inCache+=1;
+			s_length-=1;
+			} else {
+			//We'll do three pixels		
+			p1 = (p1+p2)>>1;
+			p2 = (p2+p3)>>1;
+			p3 = (p3+p4)>>1;
+			*outWrite = p1;
+			*(outWrite+1) = p2;
+			*(outWrite+2) = p3;
+			outWrite+=3;
+			s_length-=3;
+			inCache+=3;
+			}
+		} else {
+		        *outWrite = p1;
+			outWrite+=1;
+			inCache+=1;
+			s_length-=1;
+		}
+
+	} while (s_length>0);
+}
+#endif
 
 void RenderLine_X1S2_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
 {
-PRE_X1_32_BUF;
+PRE_X2_32_BUF;
 	do {
 		uint32 p1 = table[*src++];
 		uint32 p2 = *inCache;
@@ -540,7 +933,7 @@ PRE_X1_32_BUF;
 
 void RenderLine_X1S3_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
 {
-PRE_X1_32_BUF;
+PRE_X2_32_BUF;
 	do {
 		uint32 p1 = table[*src++];
 		uint32 p2 = table[*src];
@@ -550,49 +943,6 @@ PRE_X1_32_BUF;
 		p1 = (p1+p3)>>1;
 		*outWrite++ = p1;
 	} while (--length);
-}
-
-//GDAPT
-
-uint32 Line[322];
-float  tag[320];
-
-FORCE_INLINE
-float colorDist(const unsigned int pix1, const unsigned int pix2)
-{
-  if (pix1 == pix2) return 0;	
-  unsigned int tmp1 = pix1;
-  unsigned int tmp2 = pix2;
-  int b_diff = (tmp1&0xFF)-(tmp2&0xFF);
-  tmp1>>=8; tmp2>>=8; 
-  int g_diff = (tmp1&0xFF)-(tmp2&0xFF);	
-  tmp1>>=8; tmp2>>=8;
-  int r_diff = tmp1 - tmp2;
-  long rmean = ( (long)tmp1 + (long)tmp2 ) / 2;
-  return sqrt((((512+rmean)*r_diff*r_diff)>>8) + 4*g_diff*g_diff + (((767-rmean)*b_diff*b_diff)>>8));
-}
-
-float eq(const unsigned int pix1, const unsigned int pix2)
-{
-	float  cdist = colorDist(pix1, pix2);	
-	if (cdist==0) return  1;	
-	if (cdist>=3) return  0;	
-	return 1-cdist/3;
-}
-
-
-void RenderLine_X1S4_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
-{
-//Line
-long savelen = length;
-uint32 *outWrite = &Line[0] + offset+line*320; 
-	do {
-		*outWrite++ = table[*src++];
-	} while (--length);
-//Pass 1
-
-	
-		
 }
 
 extern void xBRZScale_2X (uint32* input, uint32* output, int pitch);
@@ -668,6 +1018,7 @@ PRE_X2_32;
 	} while (--length);
 }
 
+#if 1
 void RenderLine_X2S1 (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 PRE_X2_32;
@@ -686,6 +1037,74 @@ PRE_X2_32;
                 *outWrite++;
 	} while (--length);
 }
+#else
+void RenderLine_X2S1 (uint8 *src, int line, int offset, uint32 *table, int length)
+{
+int next = 0;
+uint32 p_prev = 0;
+
+uint32 LineBuffer[330];
+uint32 NeedSmooth[330];
+
+	int savelen = length;
+
+	uint32 *outWrite = &LineBuffer[0];	
+
+	do {
+		*outWrite++ = table[*src++];
+	} while (--length);
+
+	length = savelen;
+	length--;
+
+	p_prev = LineBuffer[0];
+
+	for (int ii=1; i<length; ii++) {
+		uint32 p_this = LineBuffer[ii];
+		uint32 p_next = LineBuffer[ii+1];
+		uint32 p_nnext = LineBuffer[ii+2];
+
+		
+ 
+	}
+
+	do {
+		uint32 p1 = 
+		uint32 p2 = table[*src];
+		uint32 p3 = table[*(src+1)];
+		uint32 p4 = table[*(src+2)];
+		uint32 p5 = table[*(src+3)];
+
+	if (next) {
+		p1 = (p1+p2)>>1;
+		next--;
+		} else {
+
+		//if ((p1==p3)|(p2==p4)&((p3!=p4)|(p1!=p2)|(p2!=p3)))
+
+		if (p1==p3)
+			if ((p1!=p2)|(p0==p1))
+				if ((p3!=p4)|(p4==p5))
+			{
+			p0 = p1;
+			p1 = (p1+p2)>>1;
+			//next=3;
+			}
+		else    {
+			p0 = p1;
+			p1 = p1;
+			}
+		}
+
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+		*outWrite = p1;
+                *(outWrite+640) = p1;
+                *outWrite++;
+	} while (--length);
+}
+#endif
 
 void RenderLine_X2S2 (uint8 *src, int line, int offset, uint32 *table, int length)
 {
