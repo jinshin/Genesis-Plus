@@ -197,15 +197,7 @@ class OutputMatrix {
 		const int outWidth_;
 };
 
-
-//n0p - trying 16.16
-
-#define R_MUL 13933
-#define	G_MUL 46871
-#define B_MUL 4732
-#define CB_MUL 35317
-#define CR_MUL 41615
-
+/*
 FORCE_INLINE
 float distYCbCr(const unsigned int& pix1, const unsigned int& pix2) {
 	if (pix1 == pix2) //about 8% perf boost
@@ -238,6 +230,23 @@ float distYCbCr(const unsigned int& pix1, const unsigned int& pix2) {
 	const float c_r = (r_diff - y) * 0.635F;
 	//we skip division by 255 to have similar range like other distance functions
 	return sqrt(y*y + c_b*c_b +  c_r*c_r);
+}
+
+*/
+
+FORCE_INLINE
+float distYCbCr(const unsigned int& pix1, const unsigned int& pix2)
+{
+  if (pix1 == pix2) return 0;	
+  unsigned int tmp1 = pix1;
+  unsigned int tmp2 = pix2;
+  int b_diff = (tmp1&0xFF)-(tmp2&0xFF);
+  tmp1>>=8; tmp2>>=8; 
+  int g_diff = (tmp1&0xFF)-(tmp2&0xFF);	
+  tmp1>>=8; tmp2>>=8;
+  int r_diff = tmp1 - tmp2;
+  long rmean = ( (long)tmp1 + (long)tmp2 ) / 2;
+  return sqrt((((512+rmean)*r_diff*r_diff)>>8) + 4*g_diff*g_diff + (((767-rmean)*b_diff*b_diff)>>8));
 }
 
 
