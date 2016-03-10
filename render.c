@@ -255,10 +255,11 @@ if (scale <= 2) {
 	case 3: xbrz=0; RenderLine = RenderLine_X2S3; break;
 	case 4: xbrz=0; RenderLine = RenderLine_X2S4; break;
 
-	case 5: xbrz=1; RenderLine = RenderLine_X1_Buffer; break;
+	case 5: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
 	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
 	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
 	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
+
         }
 }
 
@@ -270,10 +271,10 @@ if (scale == 3) {
 	case 3: xbrz=0; RenderLine = RenderLine_X3S3; break;
 	case 4: xbrz=0; RenderLine = RenderLine_X3S4; break;
 
-	case 5: xbrz=1; RenderLine = RenderLine_X1_Buffer; break;
+	case 5: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
 	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
 	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
-	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
+	case 8: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
 	}
 }
 
@@ -285,10 +286,10 @@ if (scale == 4) {
 	case 3: xbrz=0; RenderLine = RenderLine_X4S3; break;
 	case 4: xbrz=0; RenderLine = RenderLine_X4S4; break;
 
-	case 5: xbrz=1; RenderLine = RenderLine_X1_Buffer; break;
+	case 5: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
 	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
 	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
-	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
+	case 8: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
 	}
 }
 }
@@ -554,58 +555,172 @@ PRE_X1_32_BUF;
 
 //GDAPT
 
-uint32 Line[322];
-float  tag[320];
+uint32 Line[320];
+uint32 PreLine[322];
+int  tag[321];
 
-FORCE_INLINE
-float colorDist(const unsigned int pix1, const unsigned int pix2)
+inline
+float invsqrt( float number )
 {
-  if (pix1 == pix2) return 0;	
-  unsigned int tmp1 = pix1;
-  unsigned int tmp2 = pix2;
-  int b_diff = (tmp1&0xFF)-(tmp2&0xFF);
-  tmp1>>=8; tmp2>>=8; 
-  int g_diff = (tmp1&0xFF)-(tmp2&0xFF);	
-  tmp1>>=8; tmp2>>=8;
-  int r_diff = tmp1 - tmp2;
-  long rmean = ( (long)tmp1 + (long)tmp2 ) / 2;
-  return sqrt((((512+rmean)*r_diff*r_diff)>>8) + 4*g_diff*g_diff + (((767-rmean)*b_diff*b_diff)>>8));
+	long i;
+	float x2, y;
+	const float threehalfs = 1.5F;
+
+	x2 = number * 0.5F;
+	y  = number;
+	i  = * ( long * ) &y;                       // evil floating point bit level hacking
+	i  = 0x5f3759df - ( i >> 1 );               // what the fuck? 
+	y  = * ( float * ) &i;
+	y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
+
+	return y;
 }
 
-float eq(const unsigned int pix1, const unsigned int pix2)
+inline
+float ColorDistEq(const unsigned int pix1, const unsigned int pix2)
 {
-	float  cdist = colorDist(pix1, pix2);	
-	if (cdist==0) return  1;	
-	if (cdist>=3) return  0;	
-	return 1-cdist/3;
+    if (pix1 == pix2) return 1;	
+    unsigned int tmp1 = pix1;
+    unsigned int tmp2 = pix2;
+    int b_diff = (tmp1&0xFF)-(tmp2&0xFF);
+    tmp1>>=8; tmp2>>=8; 
+    int g_diff = (tmp1&0xFF)-(tmp2&0xFF);	
+    tmp1>>=8; tmp2>>=8;
+    int r_diff = tmp1 - tmp2;
+    long rmean = ( (long)tmp1 + (long)tmp2 ) >> 1;
+    float cdist = sqrt((((512+rmean)*r_diff*r_diff)>>8) + ((g_diff*g_diff)<<2) + (((767-rmean)*b_diff*b_diff)>>8));
+    if (cdist==0) return  1;	
+    if (cdist>=3) return  0;
+    return 1-cdist/3;
 }
 
+inline
+float DotNormals(const unsigned int C, const unsigned int L, const unsigned int R)
+{
+    unsigned int tmpC = C;
+    unsigned int tmpL = L;
+    unsigned int tmpR = R;
+
+    float CLb = (tmpC&0xFF)-(tmpL&0xFF);
+    float CRb = (tmpC&0xFF)-(tmpR&0xFF);
+        tmpC>>=8; tmpL>>=8; tmpR>>=8;
+    float CLg = (tmpC&0xFF)-(tmpL&0xFF);
+    float CRg = (tmpC&0xFF)-(tmpR&0xFF);
+        tmpC>>=8; tmpL>>=8; tmpR>>=8;
+    float CLr = (tmpC&0xFF)-(tmpL&0xFF);
+    float CRr = (tmpC&0xFF)-(tmpR&0xFF);
+      
+    float CLl = invsqrt(CLr*CLr + CLg*CLg + CLb*CLb);
+    float CRl = invsqrt(CRr*CRr + CRg*CRg + CRb*CRb);
+ 
+      //if ( d == 1.0  || d == 0.0 ) return;
+
+      CLr = CLr * CLl;
+      CLg = CLg * CLl;
+      CLb = CLb * CLl;
+	
+      CRr = CRr * CRl;
+      CRg = CRg * CRl;
+      CRb = CRb * CRl;
+   
+      return CLr*CRr+CLg*CRg+CLb*CRb; 
+
+}
+
+inline
+int Lerp (float A, float B, float W)
+{
+	//if (W<0.1) return A;
+        return (A + W*(B-A));
+}
 
 void RenderLine_X1S4_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 //Line
 long savelen = length;
-uint32 *outWrite = &Line[0] + offset+line*320; 
+uint32 *outWrite = &PreLine[1]; 
 	do {
 		*outWrite++ = table[*src++];
 	} while (--length);
 //Pass 1
+        for (int x=1; x<=savelen; x++)
+	{
+	    //uint32 C = PreLine[x];
+	    uint32 L = PreLine[x-1];
+            uint32 R = PreLine[x+1];		
 
-	
+	//	float DN = ColorDistEq(L,R);
+        //    if ((DN>0)&&(DN<0.99)) fprintf(stderr," %f",DN);
+
+            //tag[x] = ((DotNormals(C,L,R) * ColorDistEq(L,R))<0.6) ? 0 : 1;
+            //tag[x] = ((ColorDistEq(L,R))<0.6) ? 0 : 1;
+
+	    tag[x] = (L!=R) ? 0 : 1;	
+
+	    //if ((tag[x]>0)&&(tag[x]<0.95)) fprintf(stderr," %f",tag[x]);
+	}	
+//Pass 2	
+	outWrite = &Buffer[0] + offset+line*320; \
+	uint32 *inCache = &Cache[0] + offset+line*320;	
+        for (int x=1; x<=savelen; x++)
+	{
+
+	    int Cw = tag[x];
+	    int Lw = tag[x-1];
+	    int Rw = tag[x+1];
+
+	    int str = Lw;
+	    if (Lw<Rw) str = Rw;
+	    if (Cw<str) str = Cw;
+
+	    uint32 C = PreLine[x];
+
+	    if (str<1) {
+	        *outWrite++ = C;
+	    } else {
+
+	    uint32 L = PreLine[x-1];
+	    uint32 R = PreLine[x+1];
+
+	    //if ((str>0)&&(str<0.95)) fprintf(stderr," %f",str);
+
+	    unsigned char nB,nG,nR;	
+
+   	    int sum  = Lw + Rw;
+	    int wght = Lw;
+	    if (Rw>Lw) wght = Rw;	
+	    wght = (wght == 0) ? 1 : sum/wght;
+
+		nB = (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum);
+		C>>=8; L>>=8; R>>=8;
+		nG = (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum);
+		C>>=8; L>>=8; R>>=8;
+		nR = (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum);
+		*outWrite++ = (nR<<16) + (nG<<8) + nB;
+	    }
+/*
+            unsigned char nB = Lerp(C&0xFF, (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum), str);	
+            C>>=8; L>>=8; R>>=8;
+            unsigned char nG = Lerp(C&0xFF, (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum), str);
+            C>>=8; L>>=8; R>>=8;
+            unsigned char nR = Lerp(C&0xFF, (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum), str);		
 		
+	    *outWrite++ = (nR<<16) + (nG<<8) + nB;
+*/	   
+	}	
 }
 
-extern void xBRZScale_2X (uint32* input, uint32* output, int pitch);
-extern void xBRZScale_3X (uint32* input, uint32* output, int pitch);
-extern void xBRZScale_4X (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_2X (uint32* input, uint8* output, int pitch);
+extern void xBRZScale_3X (uint32* input, uint8* output, int pitch);
+extern void xBRZScale_4X (uint32* input, uint8* output, int pitch);
 
-extern void xBRZScale_2X_MT (uint32* input, uint32* output, int pitch);
-extern void xBRZScale_3X_MT (uint32* input, uint32* output, int pitch);
-extern void xBRZScale_4X_MT (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_2X_MT (uint32* input, uint8* output, int pitch);
+extern void xBRZScale_3X_MT (uint32* input, uint8* output, int pitch);
+extern void xBRZScale_4X_MT (uint32* input, uint8* output, int pitch);
 
-extern void xBRZScale_2X_MT2 (uint32* input, uint32* output, int pitch);
-extern void xBRZScale_3X_MT2 (uint32* input, uint32* output, int pitch);
-extern void xBRZScale_4X_MT2 (uint32* input, uint32* output, int pitch);
+extern void xBRZScale_2X_MT2 (uint32* input, uint8* output, int pitch);
+extern void xBRZScale_3X_MT2 (uint32* input, uint8* output, int pitch);
+extern void xBRZScale_4X_MT2 (uint32* input, uint8* output, int pitch);
 
 
 void xBRZ_2X (uint32* input, uint32* output) {

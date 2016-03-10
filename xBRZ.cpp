@@ -246,7 +246,7 @@ float distYCbCr(const unsigned int& pix1, const unsigned int& pix2)
   tmp1>>=8; tmp2>>=8;
   int r_diff = tmp1 - tmp2;
   long rmean = ( (long)tmp1 + (long)tmp2 ) / 2;
-  return sqrt((((512+rmean)*r_diff*r_diff)>>8) + 4*g_diff*g_diff + (((767-rmean)*b_diff*b_diff)>>8));
+  return sqrt((((512+rmean)*r_diff*r_diff)>>8) + ((g_diff*g_diff)<<4) + (((767-rmean)*b_diff*b_diff)>>8));
 }
 
 
