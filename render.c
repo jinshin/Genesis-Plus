@@ -206,7 +206,8 @@ void RenderLine_X1_Buffer (uint8 *src, int line, int offset, uint32 *table, int 
 void RenderLine_X1S1_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X1S2_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X1S3_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
-void RenderLine_X1S4_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
+
+void RenderLine_X1SGD_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 
 void RenderLine_X2 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X2S1 (uint8 *src, int line, int offset, uint32 *table, int length);
@@ -554,6 +555,13 @@ PRE_X1_32_BUF;
 }
 
 //GDAPT
+/*
+   Genesis Dithering and Pseudo Transparency Shader v1.3
+   by Sp00kyFox, 2014
+
+   Fast and simpified version by n0p, 2016	
+
+*/
 
 uint32 Line[320];
 uint32 PreLine[322];
@@ -628,13 +636,13 @@ float DotNormals(const unsigned int C, const unsigned int L, const unsigned int 
 }
 
 inline
-int Lerp (float A, float B, float W)
+int Lerp (int A, int B, int W)
 {
 	//if (W<0.1) return A;
         return (A + W*(B-A));
 }
 
-void RenderLine_X1S4_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
+void RenderLine_X1SGD_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 //Line
 long savelen = length;
@@ -645,7 +653,7 @@ uint32 *outWrite = &PreLine[1];
 //Pass 1
         for (int x=1; x<=savelen; x++)
 	{
-	    //uint32 C = PreLine[x];
+	    uint32 C = PreLine[x];
 	    uint32 L = PreLine[x-1];
             uint32 R = PreLine[x+1];		
 
@@ -654,8 +662,13 @@ uint32 *outWrite = &PreLine[1];
 
             //tag[x] = ((DotNormals(C,L,R) * ColorDistEq(L,R))<0.6) ? 0 : 1;
             //tag[x] = ((ColorDistEq(L,R))<0.6) ? 0 : 1;
+	
+	    //tag[x] = (L!=R) ? 0 : 1;
+	    tag [x] = 0;	
 
-	    tag[x] = (L!=R) ? 0 : 1;	
+	    if ((R==L)&(C!=R)) {
+                tag [x] = 256;
+	    }   //else if (tag [x-1] == 256) tag [x] = 32;
 
 	    //if ((tag[x]>0)&&(tag[x]<0.95)) fprintf(stderr," %f",tag[x]);
 	}	
@@ -675,7 +688,7 @@ uint32 *outWrite = &PreLine[1];
 
 	    uint32 C = PreLine[x];
 
-	    if (str<1) {
+	    if (str == 0) {
 	        *outWrite++ = C;
 	    } else {
 
@@ -689,14 +702,19 @@ uint32 *outWrite = &PreLine[1];
    	    int sum  = Lw + Rw;
 	    int wght = Lw;
 	    if (Rw>Lw) wght = Rw;	
-	    wght = (wght == 0) ? 1 : sum/wght;
+	    wght = (wght == 0) ? 256 : (sum*256)/wght;
+		
 
-		nB = (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum);
+	    //sum=512, wght=256, 
+
+		nB = (long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum);
 		C>>=8; L>>=8; R>>=8;
-		nG = (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum);
+		nG = (long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum);
 		C>>=8; L>>=8; R>>=8;
-		nR = (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum);
+		nR = (long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum);
+		
 		*outWrite++ = (nR<<16) + (nG<<8) + nB;
+
 	    }
 /*
             unsigned char nB = Lerp(C&0xFF, (wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(wght + sum), str);	

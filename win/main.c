@@ -1036,6 +1036,8 @@ void ReinitRender()
     set_renderer();
     ToolbarState=0;
     UpdateToolbar();
+    memset(screen->pixels,0,screen->h*screen->pitch);
+
 }
 
 
