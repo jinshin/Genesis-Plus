@@ -207,7 +207,7 @@ void RenderLine_X1S1_Buffer (uint8 *src, int line, int offset, uint32 *table, in
 void RenderLine_X1S2_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X1S3_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 
-void RenderLine_X1SGD_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
+void RenderLine_X1S4_Buffer (uint8 *src, int line, int offset, uint32 *table, int length);
 
 void RenderLine_X2 (uint8 *src, int line, int offset, uint32 *table, int length);
 void RenderLine_X2S1 (uint8 *src, int line, int offset, uint32 *table, int length);
@@ -638,11 +638,12 @@ float DotNormals(const unsigned int C, const unsigned int L, const unsigned int 
 inline
 int Lerp (int A, int B, int W)
 {
+//W 0..1 = 0..256
 	//if (W<0.1) return A;
-        return (A + W*(B-A));
+        return (A + ((W*(B-A))>>8));
 }
 
-void RenderLine_X1SGD_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
+void RenderLine_X1S4_Buffer (uint8 *src, int line, int offset, uint32 *table, int length)
 {
 //Line
 long savelen = length;
@@ -668,7 +669,7 @@ uint32 *outWrite = &PreLine[1];
 
 	    if ((R==L)&(C!=R)) {
                 tag [x] = 256;
-	    }   //else if (tag [x-1] == 256) tag [x] = 32;
+	    }   //else if (tag [x-1] == 256) tag [x] = 128;
 
 	    //if ((tag[x]>0)&&(tag[x]<0.95)) fprintf(stderr," %f",tag[x]);
 	}	
@@ -707,13 +708,27 @@ uint32 *outWrite = &PreLine[1];
 
 	    //sum=512, wght=256, 
 
+/*
+                //Very simlified
 		nB = (long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum);
 		C>>=8; L>>=8; R>>=8;
 		nG = (long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum);
 		C>>=8; L>>=8; R>>=8;
 		nR = (long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum);
+*/
+
+		//Original, fixed point. 
+		nB = Lerp(C,(long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum),str);
+		C>>=8; L>>=8; R>>=8;
+		nG = Lerp(C,(long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum),str);
+		C>>=8; L>>=8; R>>=8;
+		nR = Lerp(C,(long)(wght*(C&0xFF) + Lw*(L&0xFF) + Rw*(R&0xFF))/(long)(wght + sum),str);
 		
 		*outWrite++ = (nR<<16) + (nG<<8) + nB;
+
+		//Reference
+		//retval.x = Lerp(C.x, (wght*C.x + L.w*L.x + R.w*R.x)/(wght + sum), str);
+
 
 	    }
 /*
