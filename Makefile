@@ -5,15 +5,15 @@
 # -DDEBUG     - Enable debugging code
 # -DX86_ASM   - Enable inline x86 assembly code in Z80 emulator
 
-CC	=	gcc
+CC	=	i686-w64-mingw32-gcc
 AS	=	nasm -f coff
-LDFLAGS	=	
-FLAGS	=	-I. -IxBRZ -Icpu -Iwin -Isound -I/usr/include -I/usr/local/include/SDL -L/usr/local/lib \
+LDFLAGS	=	--enable-stdcall-fixup
+FLAGS	=	-I. -Icpu -Iwin -Isound -I/usr/local/cross-tools/i386-mingw32/include -I/usr/local/cross-tools/i386-mingw32/include/SDL \
 		 \
 		 \
 		-Ofast -march=i686 -D_WFIX -s
 
-LIBS	=	m68k/m68k.oa -lz -lm -lSDL -lwinmm -lcomdlg32 -lgdi32 -static -Wl,-Map=genmap.txt -L/usr/local/lib
+LIBS	=	m68k/m68k.oa -s -lz -lm -lSDL -lwinmm -lcomdlg32 -lgdi32 -lkernel32 -lpthread -static -Wl,-Map=genmap.txt -L/usr/local/cross-tools/i386-mingw32/lib
 
 #-Wl,-Map=1.txt
 
@@ -64,7 +64,7 @@ obj/%.o : 	%.s
 		$(CC) -c $< -o $@
 
 obj/%.o : 	%.rc 
-		windres $< -o $@
+		i686-w64-mingw32-windres $< -o $@
 	        
 obj/%.o :	win/%.s
 		$(AS) $< -o $@
@@ -82,7 +82,7 @@ obj/%.o :	%.cpp %.h
 		$(CC) -c $< -o $@ $(FLAGS)
 	        
 pack	:
-		strip $(EXE)
+		i686-w64-mingw32-strip $(EXE)
 		upx -9 $(EXE)	        
 
 clean	:	        

@@ -1,0 +1,11 @@
+obj/*
+Musashi/*
+wm/*
+z80/*.o
+z80/*.oa
+m68k/*.o
+m68k/*.oa
+*.o
+*.oa
+*.txt
+

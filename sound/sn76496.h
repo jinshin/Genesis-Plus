@@ -25,7 +25,7 @@ struct SN76496
 	int Output[4];
 };
 
-struct SN76496 sn[MAX_76496];
+extern struct SN76496 sn[MAX_76496];
 
 /* Function prototypes */
 void SN76496Write(int chip,int data);

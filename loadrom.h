@@ -18,7 +18,7 @@ uint8  cycle;  // EEPROM SRAM cycle number
 uint8  slave;  // EEPROM slave word for X24C02 and better SRAMs
 } t_sram;
 
-t_sram sram;
+extern t_sram sram;
 
 extern uint8 vdp_rate;
 

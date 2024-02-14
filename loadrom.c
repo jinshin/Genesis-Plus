@@ -83,7 +83,9 @@ int load_rom(char *filename)
     if (country) hardware=country; //simple autodetect override
 
     //From PicoDrive
-    if (hardware&8) 		{ hw=0xc0; vdp.pal=1; } // Europe
+//    if (hardware&8) 		{ hw=0xc0; vdp.pal=1; } // Europe
+    if (hardware&8) 		{ hw=0xc0; vdp.pal=0; } // USA
+
     else if (hardware&4) 	{ hw=0x80; vdp.pal=0; } // USA
     else if (hardware&2) 	{ hw=0x40; vdp.pal=1; } // Japan PAL
     else if (hardware&1)   	{ hw=0x00; vdp.pal=0; } // Japan NTSC

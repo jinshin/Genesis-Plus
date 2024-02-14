@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <zlib.h>
+#include <windows.h>
 
 #include "mtypes.h"
 #include "macros.h"

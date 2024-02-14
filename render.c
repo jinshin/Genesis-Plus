@@ -275,7 +275,7 @@ if (scale == 3) {
 	case 5: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
 	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
 	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
-	case 8: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
+	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
 	}
 }
 
@@ -290,7 +290,7 @@ if (scale == 4) {
 	case 5: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
 	case 6: xbrz=1; RenderLine = RenderLine_X1S1_Buffer; break;
 	case 7: xbrz=1; RenderLine = RenderLine_X1S2_Buffer; break;
-	case 8: xbrz=1; RenderLine = RenderLine_X1S4_Buffer; break;
+	case 8: xbrz=1; RenderLine = RenderLine_X1S3_Buffer; break;
 	}
 }
 }

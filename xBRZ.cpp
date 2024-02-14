@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <pthread.h>
 
 #ifdef _WINDOWS
 	#define WIN32_LEAN_AND_MEAN
@@ -55,6 +54,9 @@
 	#include <windows.h>
 	//#undef NOMINMAX
 #endif
+
+#include <pthread.h>
+
 #include <limits>
 //#include <algorithm> // if using std::max or std:.min
 #ifdef _MSC_VER

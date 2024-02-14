@@ -10,7 +10,7 @@ mt = none
 
 # 0:Plain, 1:TV, 2:Phosph, 3:TV+Phosph, 4:LCD, 5:xBRZ, 6:TV+xBRZ, 7:Phosph+xBRZ, 8:TV+Phosph+xBRZ, Toggle with F3.
 # values: 0..8
-renderer = 7
+renderer = 2
 
 # Start fullscreen. Toggle with ESC.
 # values: true/false
@@ -30,7 +30,7 @@ sound = on
 
 # Update FM only once per frame - disable if music seem to be incorrect
 # values: true/false
-fastsound = false
+fastsound = true
 
 # Alternate sound buffer wait routine. Works better on newer devices, on my h2210 sound is better with old one. So choose yourself.
 # values: true/false
@@ -71,68 +71,4 @@ configfolder = romfolder
 # Whether to emulate six or three button pad
 # values: true/false
 sixbuttonpad = false
-
-# Start button
-# values: SDL keysym
-key_start = 13
-
-# Mode button
-# values: SDL keysym
-key_mode = 197
-
-# Up
-# values: SDL keysym
-key_up = 273
-
-# Down
-# values: SDL keysym
-key_down = 274
-
-# Left
-# values: SDL keysym
-key_left = 276
-
-# Right
-# values: SDL keysym
-key_right = 275
-
-# Up and Left
-# values: SDL keysym
-key_up_left = 113
-
-# Up and Right
-# values: SDL keysym
-key_up_right = 101
-
-# Down and Right
-# values: SDL keysym
-key_down_right = 281
-
-# Down and Left
-# values: SDL keysym
-key_down_left = 279
-
-# 'A' button
-# values: SDL keysym
-key_a = 97
-
-# 'B' button
-# values: SDL keysym
-key_b = 115
-
-# 'C' button
-# values: SDL keysym
-key_c = 100
-
-# 'X' button
-# values: SDL keysym
-key_x = 122
-
-# 'Y' button
-# values: SDL keysym
-key_y = 120
-
-# 'Z' button
-# values: SDL keysym
-key_z = 199
 
